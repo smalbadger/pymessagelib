@@ -180,6 +180,7 @@ class Message(ABC):
         def set_field(self, value):
             assert field.value_is_valid(value)
             self._fields[name].value = value
+            self.update_fields()
             
         return set_field
     
@@ -215,6 +216,66 @@ class Message(ABC):
                 raise Exception("Circular field dependency detected!")     
             elif not try_again:
                 break
+            
+    def render_table(self, formats=(Field.Format.Hex, Field.Format.Bin)) -> str:
+        
+        # Calculate column widths based on max lengths
+        max_field_name_length = len(max(self._fields.keys(), key=len))
+        max_format_lens = []
+        for fmt in formats:
+            max_format_lens.append(len(max([f.render(fmt=fmt) for f in self._fields.values()], key=len)))
+            
+        # Build header
+        name_col_fmt = "| {:^" + str(max_field_name_length) + "s} |"
+        hdr = name_col_fmt.format("Field")
+        for fmt, l in zip(formats, max_format_lens):
+            column_fmt = " {:^" + str(l) + "s} |"
+            hdr += column_fmt.format(fmt.name)            
+            
+        hdr_bars = f"+={'='*max_field_name_length}=+"
+        for l in max_format_lens:
+            hdr_bars += f"={'='*l}=+"
+        row_separator = hdr_bars.replace("=", '-')
+            
+        ascii_table = f"{hdr_bars}\n{hdr}\n{hdr_bars}"
+        
+        # Build field rows
+        for fieldname, field in self._fields.items():
+            
+            name_col_fmt = "| {:<" + str(max_field_name_length) + "s} |"
+            row = name_col_fmt.format(fieldname)
+            
+            for fmt, l in zip(formats, max_format_lens):
+                column_fmt = " {:<" + str(l) + "s} |"
+                row += column_fmt.format(field.render(fmt=fmt))   
+            
+            ascii_table += f"\n{row}\n{row_separator}"
+            
+        return ascii_table
+            
+    def compare_tables(self, other_message):
+        
+        my_table = self.render_table().split('\n')
+        other_table = other_message.render_table().split('\n')
+        
+        comps = {}
+        counter = 3
+        for field1, field2 in zip(self._fields.values(), other_message._fields.values()):
+            comps[counter] = field1.value == field2.value
+            counter += 2
+        
+        counter = 0
+        for my_line, other_line in zip(my_table, other_table):
+            if counter in comps:
+                comp = "==" if comps[counter] is True else "!="
+            else:
+                comp = "  "
+                
+            print(f"{my_line}  {comp}  {other_line}")  
+            counter += 1
+            
+        return False in comps
+
 
 ###########################################################################
 # MessageBuilder Class
