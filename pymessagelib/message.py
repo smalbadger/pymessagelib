@@ -35,8 +35,8 @@ class InvalidDataFormatException(Exception):
 # Field Class
 ###########################################################################
 
+
 class Field(ABC):
-    
     class Format(Enum):
         Bin = 2
         Oct = 8
@@ -50,24 +50,28 @@ class Field(ABC):
         self._format = None
         self._value_function = None
         self._value = None
-        self._access = {"Read": True, "Write": True if value is None else False, "Auto Update": inspect.isfunction(value)}
-        
+        self._access = {
+            "Read": True,
+            "Write": True if value is None else False,
+            "Auto Update": inspect.isfunction(value),
+        }
+
         # Determine the format the value will be rendered
         if format:
             self._format = format
         elif value is not None and not inspect.isfunction(value):
             self._format = Field.get_format(value)
         else:
-            self._format = Field.Format.Bin if 'Bit' in type(self).__name__ else Field.Format.Hex
-                
+            self._format = Field.Format.Bin if "Bit" in type(self).__name__ else Field.Format.Hex
+
         # Determine if the value is a function or an actual value.
         if inspect.isfunction(value):
             self._value_function = value
         elif value is not None:
             assert self.value_is_valid(value)
             self._value = self.render(value=value, fmt=Field.Format.Bin, pad_to_length=self._bit_length)
-            assert len(self._value)-1 == self._bit_length
-            
+            assert len(self._value) - 1 == self._bit_length
+
     def render(self, value=None, fmt=None, pad_to_length=0) -> str:
         if not value:
             value = self.value
@@ -76,125 +80,125 @@ class Field(ABC):
         pad_to_length = pad_to_length if pad_to_length > 0 else self._character_length
         prefix, numeric_value = value[0], value[1:]
         int_val = int(numeric_value, Field.bases()[prefix].value)
-        fmt_str = f'0{pad_to_length}{self.inverted_bases()[fmt]}'
+        fmt_str = f"0{pad_to_length}{self.inverted_bases()[fmt]}"
         return self.inverted_bases()[fmt] + format(int_val, fmt_str)
-    
+
     def value_is_valid(self, value):
         bin_value = self.render(value=value, fmt=Field.Format.Bin, pad_to_length=self._bit_length)[1:]
         if len(bin_value) == self._bit_length:
             return True
         return False
-            
+
     @property
     def value_updater(self):
         return self._value_function
-            
-    @property 
+
+    @property
     def is_readable(self):
         return self._access["Read"]
-    
-    @property 
+
+    @property
     def is_writable(self):
         return self._access["Write"]
-    
-    @property 
+
+    @property
     def is_auto_updated(self):
         return self._access["Auto Update"]
-            
+
     @property
     def value(self):
         return self._value
-    
+
     @value.setter
     def value(self, value):
         assert self.value_is_valid(value)
         self._value = value
-        
+
     def __repr__(self):
         return self.render()
-    
+
     def __eq__(self, other):
-        
+
         if isinstance(other, Field):
             return self.__eq__(other._value)
-        
+
         self_prefix, self_numeric_value = self._value[0], self._value[1:]
         self_int_val = int(self_numeric_value, Field.bases()[self_prefix].value)
-        
+
         other_prefix, other_numeric_value = other[0], other[1:]
         other_int_val = int(other_numeric_value, Field.bases()[other_prefix].value)
-        
+
         return self_int_val == other_int_val
-    
+
     def __lt__(self, other):
         pass
-    
+
     def __bytes__(self):
         pass
-    
+
     def __call__(self):
         pass
-    
+
     def __len__(self):
         pass
-    
+
     def __contains__(self):
         pass
-    
+
     def __getitem__(self):
         pass
-    
+
     def __setitem__(self, value):
         pass
-    
+
     def __add__(self, other):
         pass
-    
+
     def __sub__(self, other):
         pass
-    
+
     def __lshift__(self, amount):
         pass
-    
+
     def __rshift__(self, amount):
         pass
-    
+
     def __and__(self, other):
         pass
-    
+
     def __rand__(self, other):
         pass
-    
+
     def __xor__(self, other):
         pass
-    
+
     def __rxor__(self, other):
         pass
-    
+
     def __or__(self, other):
         pass
-    
+
     def __ror__(self, other):
         pass
-    
+
     def __int__(self):
         pass
-    
+
     def __invert__(self):
         bin_val = self.render(fmt=Field.Format.Bin)
-        inv_bin_val = bin_val.replace('0', '_').replace('1', '0').replace('_', '0')
+        inv_bin_val = bin_val.replace("0", "_").replace("1", "0").replace("_", "0")
         inv_val = self.render(value=inv_bin_val, fmt=self._format)
         newfield = type(self).__new__()
         newfield.__init__(self._character_length, value=inv_val, format=self._format)
         return newfield
-    
+
     def __bool__(self):
-        return '1' in self.render(Field.Format.Bin)
-    
+        return "1" in self.render(Field.Format.Bin)
+
     ######################################################
     # Static Methods
     ######################################################
-    
+
     @staticmethod
     def bases():
         return {
@@ -203,15 +207,15 @@ class Field(ABC):
             "d": Field.Format.Dec,
             "x": Field.Format.Hex,
         }
-            
+
     @staticmethod
     def inverted_bases():
         return {v: k for k, v in Field.bases().items()}
-    
+
     @staticmethod
     def get_format(value):
         return Field.bases()[value[0]]
-    
+
     @staticmethod
     def pad_to_length(value, length):
         prefix = value[0]
@@ -221,25 +225,32 @@ class Field(ABC):
             return f"{prefix}{padding}{numeric_value}"
         else:
             raise Exception("Value is already longer than padding length")
-       
+
+
 class Bits(Field):
     bits_per_unit = 1
-    
+
+
 class Nibbles(Field):
     bits_per_unit = 4
-    
+
+
 class Bytes(Field):
     bits_per_unit = 8
-    
+
+
 class Words(Field):
     bits_per_unit = 16
-    
+
+
 class DWords(Field):
     bits_per_unit = 32
 
+
 class QWords(Field):
     bits_per_unit = 64
-    
+
+
 Bit = Bits
 Nibble = Nibbles
 Byte = Bytes
@@ -251,6 +262,7 @@ QWord = QWords
 # Message Class
 ###########################################################################
 
+
 class Message(ABC):
     """
     classdocs
@@ -258,7 +270,7 @@ class Message(ABC):
 
     def __init__(self, fields: Dict):
         """Constructor"""
-        
+
         # Fields need to be deep copied so the same field objects aren't shared
         # across all message instances of the same type.
         self._fields = deepcopy(fields)  # maps field names to field objects
@@ -271,106 +283,104 @@ class Message(ABC):
             assert field.value_is_valid(value)
             self._fields[name].value = value
             self.update_fields()
-            
+
         return set_field
-    
+
     @staticmethod
     def _create_getter(name):
         """Used for dynamically creating getters for field properties of subclasses."""
-        
+
         def get_field(self):
             field = self._fields[name]
             return field
 
         return get_field
-    
+
     def update_fields(self):
         # Update all auto-update fields
         auto_update_fields = [f for f in self._fields.values() if f.is_auto_updated]
-        
+
         for field in auto_update_fields:
-            field._value = None # erase old values
-        
+            field._value = None  # erase old values
+
         for i in range(len(auto_update_fields)):
             try_again = False
             for field in auto_update_fields:
                 field.value = field.value_updater(
-                    *[
-                        self._fields[arg].value
-                        for arg in inspect.getfullargspec(field.value_updater)[0]
-                    ]
+                    *[self._fields[arg].value for arg in inspect.getfullargspec(field.value_updater)[0]]
                 )
                 if field._value is None:
                     try_again = True
-                    
-            if i == len(auto_update_fields)-1 and try_again:
-                raise Exception("Circular field dependency detected!")     
+
+            if i == len(auto_update_fields) - 1 and try_again:
+                raise Exception("Circular field dependency detected!")
             elif not try_again:
                 break
-            
+
     def render_table(self, formats=(Field.Format.Hex, Field.Format.Bin)) -> str:
-        
+
         # Calculate column widths based on max lengths
         max_field_name_length = len(max(self._fields.keys(), key=len))
         max_format_lens = []
         for fmt in formats:
             max_format_lens.append(len(max([f.render(fmt=fmt) for f in self._fields.values()], key=len)))
-            
+
         # Build header
         name_col_fmt = "| {:^" + str(max_field_name_length) + "s} |"
         hdr = name_col_fmt.format("Field")
         for fmt, l in zip(formats, max_format_lens):
             column_fmt = " {:^" + str(l) + "s} |"
-            hdr += column_fmt.format(fmt.name)            
-            
+            hdr += column_fmt.format(fmt.name)
+
         hdr_bars = f"+={'='*max_field_name_length}=+"
         for l in max_format_lens:
             hdr_bars += f"={'='*l}=+"
-        row_separator = hdr_bars.replace("=", '-')
-            
+        row_separator = hdr_bars.replace("=", "-")
+
         ascii_table = f"{hdr_bars}\n{hdr}\n{hdr_bars}"
-        
+
         # Build field rows
         for fieldname, field in self._fields.items():
-            
+
             name_col_fmt = "| {:<" + str(max_field_name_length) + "s} |"
             row = name_col_fmt.format(fieldname)
-            
+
             for fmt, l in zip(formats, max_format_lens):
                 column_fmt = " {:<" + str(l) + "s} |"
-                row += column_fmt.format(field.render(fmt=fmt))   
-            
+                row += column_fmt.format(field.render(fmt=fmt))
+
             ascii_table += f"\n{row}\n{row_separator}"
-            
+
         return ascii_table
-            
+
     def compare_tables(self, other_message):
-        
-        my_table = self.render_table().split('\n')
-        other_table = other_message.render_table().split('\n')
-        
+
+        my_table = self.render_table().split("\n")
+        other_table = other_message.render_table().split("\n")
+
         comps = {}
         counter = 3
         for field1, field2 in zip(self._fields.values(), other_message._fields.values()):
             comps[counter] = field1.value == field2.value
             counter += 2
-        
+
         counter = 0
         for my_line, other_line in zip(my_table, other_table):
             if counter in comps:
                 comp = "==" if comps[counter] is True else "!="
             else:
                 comp = "  "
-                
-            print(f"{my_line}  {comp}  {other_line}")  
+
+            print(f"{my_line}  {comp}  {other_line}")
             counter += 1
-            
+
         return False in comps
 
 
 ###########################################################################
 # MessageBuilder Class
 ###########################################################################
+
 
 class MessageBuilder:
     """
@@ -391,7 +401,7 @@ class MessageBuilder:
 
         # Create an empty class with the appropriate name that inherits from Message.
         msg_cls = type(cls_name, (Message,), {})
-        
+
         # Categorize the fields to generate methods appropriately
         all_fields = {}
         writable_fields = {}
@@ -427,21 +437,16 @@ class MessageBuilder:
                             f"'{val}' is not a valid value for the field '{param}' in message '{cls_name}'"
                         )
                 else:
-                    raise InvalidFieldException(
-                        f"'{param}' is not a valid field in the {cls_name} message."
-                    )
-                    
+                    raise InvalidFieldException(f"'{param}' is not a valid field in the {cls_name} message.")
+
             self.update_fields()
 
         # Make a getter for all fields and a setter only for writable fields
         for name, field in all_fields.items():
             getter = Message._create_getter(name)
-            setter = (
-                Message._create_setter(name, field) if name in writable_fields else None
-            )
+            setter = Message._create_setter(name, field) if name in writable_fields else None
             setattr(msg_cls, name, property(getter, setter))
 
         msg_cls.__init__ = __init__
         msg_cls.format = fmt
         return msg_cls
-
