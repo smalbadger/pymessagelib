@@ -33,11 +33,9 @@ class InvalidDataFormatException(Exception):
 
 ###########################################################################
 # Field Class
-# -----------
-# Field Sub-Classes are dynamically created to avoid repeating similar code
 ###########################################################################
 
-class Field:
+class Field(ABC):
     
     class Format(Enum):
         Bin = 2
@@ -45,7 +43,8 @@ class Field:
         Dec = 10
         Hex = 16
 
-    def __init__(self, length, value=None, format=None):
+    def __init__(self, length, value=None, format=None, context=None):
+        self._context = context
         self._character_length = length
         self._bit_length = length * type(self).bits_per_unit
         self._format = None
@@ -61,19 +60,20 @@ class Field:
         else:
             self._format = Field.Format.Bin if 'Bit' in type(self).__name__ else Field.Format.Hex
                 
-        # Determine if the value of the field
+        # Determine if the value is a function or an actual value.
         if inspect.isfunction(value):
             self._value_function = value
         elif value is not None:
             assert self.value_is_valid(value)
-            self._value = value
+            self._value = self.render(value=value, fmt=Field.Format.Bin, pad_to_length=self._bit_length)
+            assert len(self._value)-1 == self._bit_length
             
     def render(self, value=None, fmt=None, pad_to_length=0) -> str:
         if not value:
             value = self.value
         if not fmt:
             fmt = self._format
-        pad_to_length = pad_to_length if pad_to_length else ""
+        pad_to_length = pad_to_length if pad_to_length > 0 else self._character_length
         prefix, numeric_value = value[0], value[1:]
         int_val = int(numeric_value, Field.bases()[prefix].value)
         fmt_str = f'0{pad_to_length}{self.inverted_bases()[fmt]}'
@@ -110,6 +110,87 @@ class Field:
         assert self.value_is_valid(value)
         self._value = value
         
+    def __repr__(self):
+        return self.render()
+    
+    def __eq__(self, other):
+        
+        if isinstance(other, Field):
+            return self.__eq__(other._value)
+        
+        self_prefix, self_numeric_value = self._value[0], self._value[1:]
+        self_int_val = int(self_numeric_value, Field.bases()[self_prefix].value)
+        
+        other_prefix, other_numeric_value = other[0], other[1:]
+        other_int_val = int(other_numeric_value, Field.bases()[other_prefix].value)
+        
+        return self_int_val == other_int_val
+    
+    def __lt__(self, other):
+        pass
+    
+    def __bytes__(self):
+        pass
+    
+    def __call__(self):
+        pass
+    
+    def __len__(self):
+        pass
+    
+    def __contains__(self):
+        pass
+    
+    def __getitem__(self):
+        pass
+    
+    def __setitem__(self, value):
+        pass
+    
+    def __add__(self, other):
+        pass
+    
+    def __sub__(self, other):
+        pass
+    
+    def __lshift__(self, amount):
+        pass
+    
+    def __rshift__(self, amount):
+        pass
+    
+    def __and__(self, other):
+        pass
+    
+    def __rand__(self, other):
+        pass
+    
+    def __xor__(self, other):
+        pass
+    
+    def __rxor__(self, other):
+        pass
+    
+    def __or__(self, other):
+        pass
+    
+    def __ror__(self, other):
+        pass
+    
+    def __int__(self):
+        pass
+    
+    def __invert__(self):
+        bin_val = self.render(fmt=Field.Format.Bin)
+        inv_bin_val = bin_val.replace('0', '_').replace('1', '0').replace('_', '0')
+        inv_val = self.render(value=inv_bin_val, fmt=self._format)
+        newfield = type(self).__new__()
+        newfield.__init__(self._character_length, value=inv_val, format=self._format)
+        return newfield
+    
+    def __bool__(self):
+        return '1' in self.render(Field.Format.Bin)
+    
     ######################################################
     # Static Methods
     ######################################################
@@ -140,22 +221,31 @@ class Field:
             return f"{prefix}{padding}{numeric_value}"
         else:
             raise Exception("Value is already longer than padding length")
-        
-    @staticmethod
-    def units():
-        # classes of each of the following names (plus plural versions) will be created
-        units = {"Bit": 1, "Nibble": 4, "Byte": 8, "Word": 16, "DWord": 32, "QWord": 64}
-        
-        plural_units = {}
-        for cls_name, num_bits in units.items():
-            plural_units[f"{cls_name}s"] = num_bits
-        units.update(plural_units)
-        
-        return units
+       
+class Bits(Field):
+    bits_per_unit = 1
     
-for cls_name, num_bits in Field.units().items():
-    vars()[cls_name] = type(cls_name, (Field,), {"bits_per_unit": num_bits})
+class Nibbles(Field):
+    bits_per_unit = 4
+    
+class Bytes(Field):
+    bits_per_unit = 8
+    
+class Words(Field):
+    bits_per_unit = 16
+    
+class DWords(Field):
+    bits_per_unit = 32
 
+class QWords(Field):
+    bits_per_unit = 64
+    
+Bit = Bits
+Nibble = Nibbles
+Byte = Bytes
+Word = Words
+DWord = DWords
+QWord = QWords
 
 ###########################################################################
 # Message Class
@@ -189,7 +279,8 @@ class Message(ABC):
         """Used for dynamically creating getters for field properties of subclasses."""
         
         def get_field(self):
-            return self._fields[name].value
+            field = self._fields[name]
+            return field
 
         return get_field
     
