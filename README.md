@@ -6,7 +6,25 @@ A simple Python library for constructing/dissecting messages
 
 
 ## Introduction
-This project defines a system for extracting/packaging information into custom message formats. It's intended to be a flexible framework that bridges the gap between computer-talk and human-talk. For example, if I send a message of `0x8472FEF7ABC94838925146DEA` to a device, and I'm expecting a response of either `0x00023000` or `0x89000000` - that's cool, but speaking in hexidecimal sucks! It would be so much better if I could describe the values messages (requests and responses) in human-readable terms.
+This project defines a system for extracting/packaging information into custom message formats. It's intended to be a flexible framework that bridges the gap between computer-talk and human-talk. For example, if I send a message of `0x8472FEF7ABC94838925146DEA` to a device, and I'm expecting a response of either `0x00023000` or `0x89000000` - that's cool, but speaking in hexidecimal sucks! It would be so much better if I could describe the message formats in human-readable terms and generate the hex codes automatically.
+
+## Alternative Packages
+The `struct` package is already heavily used for this, but lacks the following features:
+
+- Auto-updating fields
+- Nested field contexts
+
+## Our Solution at a High Level
+PyMessageLib dynamically creates functional classes based on user-defined message formats. The generated classes allow us to work with messages in human-readable, modular form. When instantiated, message objects are made up of fields that were specified in the original message format definitions. Field values can be constants, functions, strings, or other messages.
+
+### Constant Field Values
+When defining a message format, a constant can be specified as the field value. This indicates a read-only field.
+
+### String and Message Field Values
+If no value is specified for a field in a message format definition, the value must be assigned during instantiation and can be overwritten later. If a string is given as the value, no additional meaning will be given to different portions of the string - it is treated as one value. If another message object is given as the value, the fields of the message will be retained to allow for nested field context.
+
+### Function Field Values
+Some fields should auto-update based on other information within the message. Examples of this would be a length field or a CRC field. For auto-updating fields, the names of all arguments of the function need to match the names of field values of the message. The function used for an auto-updating field cannot depend on it's own field, but it can depend on other auto-updating fields within the message with one exception - there can't be circular logic in auto-updating fields.
 
 ## Message Class
 
@@ -25,19 +43,8 @@ A `Message` object can be created by:
 - Providing machine string format to `create` static constructor
 - Providing field values to `__init__` constructor. Fields not provided will be undefined.
 
-In some cases, undefined fields will cause issues with representing the message in machine form. For example, assume you want to describe the following message:
-
-GET_SERVICE_REQ (4-bit message) with the following fields:
-
-- NO_POWER (1 bit)
-- INVALID_CRC (1 bit)
-- TIMER_STOPPED (1 bit)
-- DETECTED_THREAT (1 bit)
-
-Assume the machine-form of this message must be a single hexadecimal digit. If any of the fields are undefined, multiple hexadecimal values will satisfy the data contained in the message. In this case, a `MessageNotSufficientlyDefinedException` will be raised.
-
 ## Message Format Structure
-
+```python
 {
 	"GET_ADDR": {
 		"id": Nibbles(4, value="0014"),
@@ -54,9 +61,4 @@ Assume the machine-form of this message must be a single hexadecimal digit. If a
 		"crc": lambda ptr, addr, pad: EKMS32Bit(ptr, addr, pad)
 	}
 }
-
-## Comparator Class
-
-For complicated message comparison, `Comparator` classes can be created and linked to compatible `Message` classes. Here is an example of a complicated comparison:
-
-Assume we have 2 message objects of the same type with 4 fields. We want to verify that field 1 is not equal, field 2 is equal, and field 3 is only equal if field 4 is not equal.
+```
