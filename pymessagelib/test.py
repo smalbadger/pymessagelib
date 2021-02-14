@@ -5,7 +5,7 @@ Created on Feb 8, 2021
 """
 import unittest
 from message import MessageBuilder
-from message import Nibbles, Bytes, Bits
+from message import Nibbles, Bytes, Bits, Bit, Byte, 
 
 msg_fmts = {
     "GET_ADDR": {
@@ -23,9 +23,44 @@ msg_fmts = {
         "pad": Bits(4, value="b0000"),
         "crc": lambda ptr, addr, pad: EKMS32Bit(ptr, addr, pad),
     },
-    "FILL_KEK": "FILL_KEY",
-    "FILL_TSK": "FILL_KEY",
-    "FILL_TEK": "FILL_KEY",
+    "WRITE_REGISTER_REQUEST": {
+        "mid": Nibbles(4, value="x0014"),
+        "length": Bytes(2, value="x0008"),
+        "addr": Bytes(4),
+        "data": Bytes(4),
+    },
+    "WRITE_REGISTER_RESPONSE": {
+        "mid": Nibbles(4, value="x1014"),
+        "length": Bytes(2, value="x0001"),
+        "success": Bytes(1),
+    },
+    "READ_REGISTER_REQUEST": {
+        "mid": Nibbles(4, value="x0015"),
+        "length": Bytes(2, value="x0004"),
+        "addr": Bytes(4),
+    },
+    "READ_REGISTER_RESPONSE": {
+        "mid": Nibbles(4, value="x0014"),
+        "length": Bytes(2, value="x0008"),
+        "addr": Bytes(4),
+        "data": Bytes(4),
+    },
+}
+
+register_defs = {
+    "OUTPUTS": {
+        "reset1": Bit(1),
+        "reset2": Bit(1),
+        "cautions": Byte(1),
+        "unused": Bits(26, value='x0000000')
+    },
+    "INPUTS": {
+        "service_req": Bit(1),
+        "voltage_ready": Bit(1),
+        "exit_code": Bytes(2),
+        "last_command_mid": Bits(2),
+        "unused": Byte(1, value='x0')
+    },
 }
 
 
@@ -43,11 +78,9 @@ class TestFields(unittest.TestCase):
         assert msg1.id == "x014"
         assert msg1.id == "x0014"
         assert msg1.id == "x00014"
-        assert msg1.id == "x000014"
         assert msg1.id != "b0100"
         assert msg1.id == "b10100"
         assert msg1.id == "b010100"
-        assert msg1.id == "b0010100"
         assert msg1.id != "o4"
         assert msg1.id == "o24"
         assert msg1.id == "o024"
@@ -77,8 +110,38 @@ class TestFields(unittest.TestCase):
         assert msg1.crc == "x5400"
 
     def testNestedFieldContext(self):
-        assert True == False
-
+        builder = MessageBuilder()
+        WRITE_REGISTER_REQUEST = builder.build_message_class("WRITE_REGISTER_REQUEST", msg_fmts["WRITE_REGISTER_REQUEST"])
+        OUTPUTS = builder.build_message_class("OUTPUTS", msg_fmts["OUTPUTS"])
+        INPUTS = builder.build_message_class("INPUTS", msg_fmts["INPUTS"])
+        
+        def verify_msg_outputs(msg):
+            assert msg.data.context == OUTPUTS
+            assert type(msg.data.value) = OUTPUTS
+            assert msg.data.reset1 == 'b1'
+            assert msg.data.reset2 == 'b0'
+            assert msg.data.cautions == 'x00'
+            assert msg.data.unused == 'x0'
+            
+        def verify_msg_inputs(msg):
+            assert msg.data.context == INPUTS
+            assert type(msg.data.value) = INPUTS
+            assert msg.data.service_req == 'b1'
+            assert msg.data.voltage_ready == 'b0'
+            assert msg.data.exit_code == 'x0000'
+            assert msg.data.last_command_mid == 'x0'
+            assert msg.data.unused == 'x00'
+        
+        send_msg_1 = WRITE_REGISTER_REQUEST(addr="x60000001", data="x10000000")
+        send_msg_1.data.context = OUTPUTS
+        verify_msg_outputs(send_msg_1)
+        send_msg_1.data.context = INPUTS
+        verify_msg_inputs(send_msg_1)
+        
+        send_msg_2 = WRITE_REGISTER_REQUEST(addr="x60000001", data=OUTPUTS(reset1='b1', reset2='b0', cautions='x00'))
+        verify_msg_outputs(send_msg_2)
+        send_msg_2.data.context = INPUTS
+        verify_msg_inputs(send_msg_2)
 
 if __name__ == "__main__":
     unittest.main()
