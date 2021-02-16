@@ -5,7 +5,7 @@ Created on Feb 8, 2021
 """
 import unittest
 from message import MessageBuilder
-from message import Nibbles, Bytes, Bits, Bit, Byte, 
+from message import Nibbles, Bytes, Bits, Bit, Byte
 
 msg_fmts = {
     "GET_ADDR": {
@@ -48,26 +48,40 @@ msg_fmts = {
 }
 
 register_defs = {
-    "OUTPUTS": {
-        "reset1": Bit(1),
-        "reset2": Bit(1),
-        "cautions": Byte(1),
-        "unused": Bits(26, value='x0000000')
-    },
+    "OUTPUTS": {"reset1": Bit(1), "reset2": Bit(1), "cautions": Byte(1), "unused": Bits(22, value="x0000000")},
     "INPUTS": {
         "service_req": Bit(1),
         "voltage_ready": Bit(1),
         "exit_code": Bytes(2),
         "last_command_mid": Bits(2),
-        "unused": Byte(1, value='x0')
+        "unused": Byte(1, value="x0"),
     },
 }
 
 
 class TestFields(unittest.TestCase):
-    def testConstruction(self):
+    def testClassBuilder(self):
         builder = MessageBuilder()
         GET_ADDR = builder.build_message_class("GET_ADDR", msg_fmts["GET_ADDR"])
+        
+    def testMessageLength(self):
+        builder = MessageBuilder()
+        OUTPUTS = builder.build_message_class("OUTPUTS", register_defs["OUTPUTS"])
+        outputs = OUTPUTS(reset1='b1', reset2='b0', cautions='x00')
+        assert len(outputs.reset1) == 1
+        assert len(outputs.reset2) == 1
+        assert len(outputs.cautions) == 8
+        assert len(outputs.unused) == 22
+        assert OUTPUTS.bit_length == 32
+        
+    def testMessageConstruction(self):
+        builder = MessageBuilder()
+        OUTPUTS = builder.build_message_class("OUTPUTS", register_defs["OUTPUTS"])
+        outputs = OUTPUTS.from_data('b11100000000000000000000000000000')
+        assert outputs.reset1 == 'b1'
+        assert outputs.reset2 == 'b1'
+        assert outputs.cautions == 'x80'
+        assert outputs.unused == 'x0'
 
     def testFieldEquals(self):
         builder = MessageBuilder()
@@ -111,37 +125,40 @@ class TestFields(unittest.TestCase):
 
     def testNestedFieldContext(self):
         builder = MessageBuilder()
-        WRITE_REGISTER_REQUEST = builder.build_message_class("WRITE_REGISTER_REQUEST", msg_fmts["WRITE_REGISTER_REQUEST"])
-        OUTPUTS = builder.build_message_class("OUTPUTS", msg_fmts["OUTPUTS"])
-        INPUTS = builder.build_message_class("INPUTS", msg_fmts["INPUTS"])
-        
+        WRITE_REGISTER_REQUEST = builder.build_message_class(
+            "WRITE_REGISTER_REQUEST", msg_fmts["WRITE_REGISTER_REQUEST"]
+        )
+        OUTPUTS = builder.build_message_class("OUTPUTS", register_defs["OUTPUTS"])
+        INPUTS = builder.build_message_class("INPUTS", register_defs["INPUTS"])
+
         def verify_msg_outputs(msg):
             assert msg.data.context == OUTPUTS
-            assert type(msg.data.value) = OUTPUTS
-            assert msg.data.reset1 == 'b1'
-            assert msg.data.reset2 == 'b0'
-            assert msg.data.cautions == 'x00'
-            assert msg.data.unused == 'x0'
-            
+            assert type(msg.data.value) == OUTPUTS
+            assert msg.data.reset1 == "b1"
+            assert msg.data.reset2 == "b0"
+            assert msg.data.cautions == "x00"
+            assert msg.data.unused == "x0"
+
         def verify_msg_inputs(msg):
             assert msg.data.context == INPUTS
-            assert type(msg.data.value) = INPUTS
-            assert msg.data.service_req == 'b1'
-            assert msg.data.voltage_ready == 'b0'
-            assert msg.data.exit_code == 'x0000'
-            assert msg.data.last_command_mid == 'x0'
-            assert msg.data.unused == 'x00'
-        
+            assert type(msg.data.value) == INPUTS
+            assert msg.data.service_req == "b1"
+            assert msg.data.voltage_ready == "b0"
+            assert msg.data.exit_code == "x0000"
+            assert msg.data.last_command_mid == "x0"
+            assert msg.data.unused == "x00"
+
         send_msg_1 = WRITE_REGISTER_REQUEST(addr="x60000001", data="x10000000")
         send_msg_1.data.context = OUTPUTS
         verify_msg_outputs(send_msg_1)
         send_msg_1.data.context = INPUTS
         verify_msg_inputs(send_msg_1)
-        
-        send_msg_2 = WRITE_REGISTER_REQUEST(addr="x60000001", data=OUTPUTS(reset1='b1', reset2='b0', cautions='x00'))
+
+        send_msg_2 = WRITE_REGISTER_REQUEST(addr="x60000001", data=OUTPUTS(reset1="b1", reset2="b0", cautions="x00"))
         verify_msg_outputs(send_msg_2)
         send_msg_2.data.context = INPUTS
         verify_msg_inputs(send_msg_2)
+
 
 if __name__ == "__main__":
     unittest.main()

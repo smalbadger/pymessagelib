@@ -9,6 +9,7 @@ import inspect
 from enum import Enum
 from typing import Dict
 from copy import deepcopy
+import math
 
 ############
 # Exceptions
@@ -31,6 +32,10 @@ class InvalidDataFormatException(Exception):
     pass
 
 
+class ContextDataMismatchException(Exception):
+    pass
+
+
 ###########################################################################
 # Field Class
 ###########################################################################
@@ -45,7 +50,7 @@ class Field(ABC):
 
     def __init__(self, length, value=None, format=None, context=None):
         self._context = context
-        self._character_length = length
+        self._unit_length = length
         self._bit_length = length * type(self).bits_per_unit
         self._format = None
         self._value_function = None
@@ -64,6 +69,9 @@ class Field(ABC):
         else:
             self._format = Field.Format.Bin if "Bit" in type(self).__name__ else Field.Format.Hex
 
+        # Determine how many characters to display when displaying in default format
+        self._character_length = math.ceil(self._bit_length / math.log2(self._format.value))
+
         # Determine if the value is a function or an actual value.
         if inspect.isfunction(value):
             self._value_function = value
@@ -78,10 +86,14 @@ class Field(ABC):
         if not fmt:
             fmt = self._format
         pad_to_length = pad_to_length if pad_to_length > 0 else self._character_length
+        return Field.render_value(value=value, fmt=fmt, pad_to_length=pad_to_length)
+    
+    @staticmethod
+    def render_value(*, value, fmt, pad_to_length):
         prefix, numeric_value = value[0], value[1:]
         int_val = int(numeric_value, Field.bases()[prefix].value)
-        fmt_str = f"0{pad_to_length}{self.inverted_bases()[fmt]}"
-        return self.inverted_bases()[fmt] + format(int_val, fmt_str)
+        fmt_str = f"0{pad_to_length}{Field.inverted_bases()[fmt]}"
+        return Field.inverted_bases()[fmt] + format(int_val, fmt_str)
 
     def value_is_valid(self, value):
         bin_value = self.render(value=value, fmt=Field.Format.Bin, pad_to_length=self._bit_length)[1:]
@@ -107,6 +119,8 @@ class Field(ABC):
 
     @property
     def value(self):
+        if self.context:
+            return self.context.from_data(self._value)
         return self._value
 
     @value.setter
@@ -114,8 +128,25 @@ class Field(ABC):
         assert self.value_is_valid(value)
         self._value = value
 
+    @property
+    def context(self):
+        return self._context
+
+    @context.setter
+    def context(self, context):
+        assert isinstance(context, Message)
+        try:
+            self.context.from_data(self._value)
+        except InvalidDataFormatException:
+            raise ContextDataMismatchException(
+                f"The data '{self._value}' is not compatible with context {context.__name__}"
+            )
+
     def __repr__(self):
-        return self.render()
+        if self.value:
+            return self.render()
+        else:
+            return f'<{type(self).__name__} Field, length={self._unit_length} ({len(self)} bits), value=undefined>'
 
     def __eq__(self, other):
 
@@ -140,7 +171,7 @@ class Field(ABC):
         pass
 
     def __len__(self):
-        pass
+        return self._bit_length
 
     def __contains__(self):
         pass
@@ -187,7 +218,7 @@ class Field(ABC):
     def __invert__(self):
         bin_val = self.render(fmt=Field.Format.Bin)
         inv_bin_val = bin_val.replace("0", "_").replace("1", "0").replace("_", "0")
-        inv_val = self.render(value=inv_bin_val, fmt=self._format)
+        inv_val = Field.render(value=inv_bin_val, fmt=self._format)
         newfield = type(self).__new__()
         newfield.__init__(self._character_length, value=inv_val, format=self._format)
         return newfield
@@ -375,6 +406,33 @@ class Message(ABC):
             counter += 1
 
         return False in comps
+    
+    def __len__(self):
+        return type(self).bit_length
+
+    @classmethod
+    def from_data(cls, data):
+        # TODO: Chunk up the data and instantiate a new object with populated fields.
+        # 1. Convert the data to binary
+        binary_data = Field.render_value(value=data, fmt=Field.Format.Bin, pad_to_length=cls.bit_length)[1:]
+        
+        # 2. chunk into fields
+        writable_field_data = {}
+        for fieldname, field in cls.format.items():
+            print(field)
+            if field.is_writable:
+                writable_field_data[fieldname] = f'b{binary_data[:len(field)]}'
+            binary_data = binary_data[len(field):]
+            
+        print(writable_field_data)
+        
+        # 3. Construct a new message providing data only for writable fields.
+        return cls(**writable_field_data)
+        
+        #try:
+        #    
+        #except:
+        #    raise InvalidDataFormatException(f"the data '{data}' doesn't fit the format for '{cls.__name__}'")
 
 
 ###########################################################################
@@ -449,4 +507,5 @@ class MessageBuilder:
 
         msg_cls.__init__ = __init__
         msg_cls.format = fmt
+        msg_cls.bit_length = sum((len(field) for field in fmt.values()))
         return msg_cls
