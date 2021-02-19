@@ -4,8 +4,8 @@ Created on Feb 8, 2021
 @author: smalb
 """
 import unittest
-from message import MessageBuilder
-from message import Nibbles, Bytes, Bits, Bit, Byte
+from message_builder import MessageBuilder
+from field import Nibbles, Bytes, Bits, Bit, Byte
 
 msg_fmts = {
     "GET_ADDR": {
@@ -133,7 +133,7 @@ class TestFields(unittest.TestCase):
 
         def verify_msg_outputs(msg):
             assert msg.data.context == OUTPUTS
-            assert type(msg.data.value) == OUTPUTS
+            assert type(msg.data) == OUTPUTS
             assert msg.data.reset1 == "b1"
             assert msg.data.reset2 == "b0"
             assert msg.data.cautions == "x00"
@@ -141,14 +141,14 @@ class TestFields(unittest.TestCase):
 
         def verify_msg_inputs(msg):
             assert msg.data.context == INPUTS
-            assert type(msg.data.value) == INPUTS
+            assert type(msg.data) == INPUTS
             assert msg.data.service_req == "b1"
             assert msg.data.voltage_ready == "b0"
             assert msg.data.exit_code == "x0000"
             assert msg.data.last_command_mid == "x0"
             assert msg.data.unused == "x00"
 
-        send_msg_1 = WRITE_REGISTER_REQUEST(addr="x60000001", data="x10000000")
+        send_msg_1 = WRITE_REGISTER_REQUEST(addr="x60000001", data="x80000000")
         send_msg_1.data.context = OUTPUTS
         verify_msg_outputs(send_msg_1)
         send_msg_1.data.context = INPUTS
