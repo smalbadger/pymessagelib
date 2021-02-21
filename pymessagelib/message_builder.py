@@ -1,13 +1,14 @@
-'''
+"""
 Created on Feb 18, 2021
 
 @author: smalb
-'''
+"""
 
 from message import Message
 from field import Field
 
 from _exceptions import MissingFieldDataException, InvalidFieldException, InvalidFieldDataException
+
 
 class MessageBuilder:
     """
@@ -61,7 +62,7 @@ class MessageBuilder:
                     if isinstance(val, Message):
                         context = type(val)
                         val = val.render()
-                        
+
                     if msg_cls.format[param].value_is_valid(val):
                         self._fields[param].value = val
                         if context:

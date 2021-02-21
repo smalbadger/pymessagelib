@@ -1,8 +1,8 @@
-'''
+"""
 Created on Feb 18, 2021
 
 @author: smalb
-'''
+"""
 
 from abc import ABC
 from enum import Enum
@@ -11,14 +11,14 @@ import inspect
 
 from _exceptions import InvalidDataFormatException, ContextDataMismatchException
 
+
 class Field(ABC):
-    
     class Format(Enum):
         Bin = 2
         Oct = 8
         Dec = 10
         Hex = 16
-        
+
     def __init__(self, length, value=None, format=None, context=None):
         self._context = context
         self._unit_length = length
@@ -50,7 +50,7 @@ class Field(ABC):
 
     def render(self, value=None, fmt=None, pad_to_length=0) -> str:
         from message import Message
-        
+
         if not value:
             value = self.value
         if not fmt:
@@ -60,7 +60,7 @@ class Field(ABC):
             return value.render()
         else:
             return Field.render_value(value=value, fmt=fmt, pad_to_length=pad_to_length)
-    
+
     @staticmethod
     def render_value(*, value, fmt, pad_to_length):
         prefix, numeric_value = value[0], value[1:]
@@ -73,7 +73,7 @@ class Field(ABC):
         if len(bin_value) == self._bit_length:
             return True
         return False
-    
+
     def length_as_format(self, fmt):
         return math.ceil(self._bit_length / math.log2(fmt.value))
 
@@ -102,7 +102,7 @@ class Field(ABC):
     @value.setter
     def value(self, value):
         from message import Message
-        
+
         is_msg = False
         if isinstance(value, Message):
             is_msg = True
@@ -113,7 +113,7 @@ class Field(ABC):
             if is_msg:
                 self.context = context
         else:
-            raise Exception() # TODO: raise more narrow exception
+            raise Exception()  # TODO: raise more narrow exception
 
     @property
     def context(self):
@@ -122,9 +122,9 @@ class Field(ABC):
     @context.setter
     def context(self, context):
         from message import Message
-        
+
         assert Message in inspect.getmro(context) or context is None
-        
+
         if context is None:
             self._context = context
         else:
@@ -136,12 +136,12 @@ class Field(ABC):
                 )
             else:
                 self._context = context
-            
+
     def __repr__(self):
         if self.value:
             return self.render()
         else:
-            return f'<{type(self).__name__} Field, length={self._unit_length} ({len(self)} bits), value=undefined>'
+            return f"<{type(self).__name__} Field, length={self._unit_length} ({len(self)} bits), value=undefined>"
 
     def __eq__(self, other):
 

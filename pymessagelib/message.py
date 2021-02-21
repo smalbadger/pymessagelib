@@ -12,6 +12,7 @@ from copy import deepcopy
 from field import Field
 from _exceptions import InvalidDataFormatException
 
+
 class Message(ABC):
     """
     classdocs
@@ -50,7 +51,7 @@ class Message(ABC):
                 return field
 
         return get_field
-    
+
     @property
     def context(self):
         if self._parent_field is not None:
@@ -83,10 +84,10 @@ class Message(ABC):
                 raise Exception("Circular field dependency detected!")
             elif not try_again:
                 break
-            
+
     def render(self):
         bin_data = f"b{''.join([data.render(fmt=Field.Format.Bin)[1:] for data in self._fields.values()])}"
-        return Field.render_value(value=bin_data, fmt=Field.Format.Hex, pad_to_length=len(self)//4)
+        return Field.render_value(value=bin_data, fmt=Field.Format.Hex, pad_to_length=len(self) // 4)
 
     def render_table(self, formats=(Field.Format.Hex, Field.Format.Bin)) -> str:
 
@@ -146,7 +147,7 @@ class Message(ABC):
             counter += 1
 
         return False in comps
-    
+
     def __len__(self):
         return type(self).bit_length
 
@@ -154,16 +155,16 @@ class Message(ABC):
     def from_data(cls, data):
         # 1. Convert the data to binary
         binary_data = Field.render_value(value=data, fmt=Field.Format.Bin, pad_to_length=cls.bit_length)[1:]
-        
+
         # 2. chunk into fields
         writable_field_data = {}
         for fieldname, field in cls.format.items():
             if field.is_writable:
-                writable_field_data[fieldname] = f'b{binary_data[:len(field)]}'
-            binary_data = binary_data[len(field):]
-        
+                writable_field_data[fieldname] = f"b{binary_data[:len(field)]}"
+            binary_data = binary_data[len(field) :]
+
         # 3. Construct a new message providing data only for writable fields.
         try:
             return cls(**writable_field_data)
-        except Exception as e: # TODO: Narrow exception handling
+        except Exception as e:  # TODO: Narrow exception handling
             raise InvalidDataFormatException(f"the data '{data}' doesn't fit the format for '{cls.__name__}'")
