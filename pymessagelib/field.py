@@ -32,7 +32,7 @@ class Field(ABC):
             "Auto Update": inspect.isfunction(value),
         }
 
-        # Determine the format the value will be rendered
+        # Determine the format the value will be rendered as
         if fmt:
             self._format = fmt
         elif value is not None and not inspect.isfunction(value):

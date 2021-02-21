@@ -10,7 +10,7 @@ from typing import Dict
 from copy import deepcopy
 
 from field import Field
-from _exceptions import InvalidDataFormatException, MissingFieldDataException
+from _exceptions import InvalidDataFormatException, MissingFieldDataException, InvalidFieldDataException
 
 
 class Message(ABC):
@@ -31,7 +31,8 @@ class Message(ABC):
         """Used for dynamically creating setters for field properties of subclasses."""
 
         def set_field(self, value):
-            assert field.value_is_valid(value)
+            if not field.value_is_valid(value):
+                raise InvalidFieldDataException(f"{value} is not a valid value for {field}")
             self._fields[name].value = value
             self.update_fields()
 
