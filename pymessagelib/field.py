@@ -58,8 +58,7 @@ class Field(ABC):
         pad_to_length = pad_to_length if pad_to_length > 0 else math.ceil(self._bit_length / math.log2(fmt.value))
         if isinstance(value, Message):
             return value.render()
-        else:
-            return Field.render_value(value=value, fmt=fmt, pad_to_length=pad_to_length)
+        return Field.render_value(value=value, fmt=fmt, pad_to_length=pad_to_length)
 
     @staticmethod
     def render_value(*, value, fmt, pad_to_length):
