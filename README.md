@@ -54,12 +54,12 @@ A `Message` object can be created by:
 		"pad": Bits(3, value="000"),
 		"crc": lambda ptr, addr, pad: EKMS32Bit(ptr, addr, pad)
 	},
-	"FILL_KEY": {
+	"SQUIRT_THING": {
 		"id": Nibbles(4, value="0015"),
 		"ptr": Bytes(3),
 		"addr": Bits(2),
 		"pad": Bits(4, value="0000"),
-		"crc": lambda ptr, addr, pad: EKMS32Bit(ptr, addr, pad)
+		"crc": lambda ptr, addr, pad: CRC32Bit(ptr, addr, pad)
 	}
 }
 ```
