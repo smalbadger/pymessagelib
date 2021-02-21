@@ -12,4 +12,4 @@ class TestMessageBuilder(unittest.TestCase):
         builder = MessageBuilder()
         builder.load_definitions(msg_fmts)
         GET_ADDR = builder.GET_ADDR
-        assert type(GET_ADDR) == type
+        self.assertTrue(isinstance(GET_ADDR, type))
