@@ -9,7 +9,7 @@ from enum import Enum
 import math
 import inspect
 
-from _exceptions import InvalidDataFormatException, ContextDataMismatchException
+from _exceptions import InvalidDataFormatException, ContextDataMismatchException, InvalidFieldDataException
 
 
 class Field(ABC):
@@ -112,7 +112,7 @@ class Field(ABC):
             if is_msg:
                 self.context = context
         else:
-            raise Exception()  # TODO: raise more narrow exception
+            raise InvalidFieldDataException(f"{value} is not a valid value for {self}")
 
     @property
     def context(self):
