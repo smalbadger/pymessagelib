@@ -1,4 +1,5 @@
-language: python            # this works for Linux but is an error on macOS or Windows
+language:                   # this works for Linux but is an error on macOS or Windows
+  python            
 jobs:
   include:
     - name: "Python 3.9.0 on Xenial Linux"
@@ -14,7 +15,13 @@ jobs:
         - choco install python --version 3.9.0
         - python -m pip install --upgrade pip
       env: PATH=/c/Python39:/c/Python39/Scripts:$PATH
-install: pip3 install --upgrade pip  # all three OSes agree about 'pip3'
+      
+install: 
+  - pip3 install --upgrade pip  # all three OSes agree about 'pip3'
+  
 # 'python' points to Python 2.7 on macOS but points to Python 3.8 on Linux and Windows
 # 'python3' is a 'command not found' error on Windows but 'py' works on Windows only
-script: python3 -m unittest -v || python -m unittest -v
+script:
+  - python3 -m unittest -v || python -m unittest -v
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
