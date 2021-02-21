@@ -1,4 +1,3 @@
-
 from field import Nibbles, Bytes, Bits, Bit, Byte
 
 msg_fmts = {

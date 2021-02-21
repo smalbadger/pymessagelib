@@ -2,8 +2,8 @@ import unittest
 from message_builder import MessageBuilder
 from msg_definitions import msg_fmts, register_defs
 
-class TestFieldComparison(unittest.TestCase):
 
+class TestFieldComparison(unittest.TestCase):
     def testFieldEquals(self):
         builder = MessageBuilder()
         GET_ADDR = builder.build_message_class("GET_ADDR", msg_fmts["GET_ADDR"])
