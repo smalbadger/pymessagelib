@@ -55,8 +55,7 @@ class Message(ABC):
     def context(self):
         if self._parent_field is not None:
             return self._parent_field.context
-        else:
-            return None
+        return None
 
     @context.setter
     def context(self, context):
