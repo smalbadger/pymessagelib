@@ -247,8 +247,7 @@ class Field(ABC):
         if len(numeric_value) <= length:
             padding = "0" * (length - len(numeric_value))
             return f"{prefix}{padding}{numeric_value}"
-        else:
-            raise Exception("Value is already longer than padding length")
+        raise Exception("Value is already longer than padding length")
 
 
 class Bits(Field):
