@@ -19,7 +19,7 @@ class Field(ABC):
         Dec = 10
         Hex = 16
 
-    def __init__(self, length, value=None, format=None, context=None):
+    def __init__(self, length, value=None, fmt=None, context=None):
         self._context = context
         self._unit_length = length
         self._bit_length = length * type(self).bits_per_unit
@@ -33,8 +33,8 @@ class Field(ABC):
         }
 
         # Determine the format the value will be rendered
-        if format:
-            self._format = format
+        if fmt:
+            self._format = fmt
         elif value is not None and not inspect.isfunction(value):
             self._format = Field.get_format(value)
         else:
@@ -215,7 +215,7 @@ class Field(ABC):
         inv_bin_val = bin_val.replace("0", "_").replace("1", "0").replace("_", "0")
         inv_val = Field.render(value=inv_bin_val, fmt=self._format)
         newfield = type(self).__new__()
-        newfield.__init__(self.length_as_format(self._format), value=inv_val, format=self._format)
+        newfield.__init__(self.length_as_format(self._format), value=inv_val, fmt=self._format)
         return newfield
 
     def __bool__(self):
