@@ -10,7 +10,7 @@ from typing import Dict
 from copy import deepcopy
 
 from field import Field
-from _exceptions import InvalidDataFormatException
+from _exceptions import InvalidDataFormatException, MissingFieldDataException, InvalidFieldDataException
 
 
 class Message(ABC):
@@ -31,7 +31,8 @@ class Message(ABC):
         """Used for dynamically creating setters for field properties of subclasses."""
 
         def set_field(self, value):
-            assert field.value_is_valid(value)
+            if not field.value_is_valid(value):
+                raise InvalidFieldDataException(f"{value} is not a valid value for {field}")
             self._fields[name].value = value
             self.update_fields()
 
@@ -47,8 +48,7 @@ class Message(ABC):
                 msg = field.value
                 msg._parent_field = field
                 return msg
-            else:
-                return field
+            return field
 
         return get_field
 
@@ -56,8 +56,7 @@ class Message(ABC):
     def context(self):
         if self._parent_field is not None:
             return self._parent_field.context
-        else:
-            return None
+        return None
 
     @context.setter
     def context(self, context):
@@ -166,5 +165,5 @@ class Message(ABC):
         # 3. Construct a new message providing data only for writable fields.
         try:
             return cls(**writable_field_data)
-        except Exception as e:  # TODO: Narrow exception handling
+        except (MissingFieldDataException, InvalidFieldDataException) as e:
             raise InvalidDataFormatException(f"the data '{data}' doesn't fit the format for '{cls.__name__}'")

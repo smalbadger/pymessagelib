@@ -1,4 +1,4 @@
-from field import Nibbles, Bytes, Bits, Bit, Byte
+from field import Field, Nibbles, Bytes, Bits, Bit, Byte
 
 msg_fmts = {
     "GET_ADDR": {
@@ -33,7 +33,7 @@ msg_fmts = {
         "addr": Bytes(4),
     },
     "READ_REGISTER_RESPONSE": {
-        "mid": Nibbles(4, value="x0014"),
+        "mid": Nibbles(4, value="x0014", fmt=Field.Format.Hex),
         "length": Bytes(2, value="x0008"),
         "addr": Bytes(4),
         "data": Bytes(4),

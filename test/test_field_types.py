@@ -1,6 +1,7 @@
 import unittest
 from message_builder import MessageBuilder
 from msg_definitions import msg_fmts, register_defs
+from _exceptions import InvalidFieldDataException
 
 
 class TestFieldTypes(unittest.TestCase):
@@ -10,6 +11,17 @@ class TestFieldTypes(unittest.TestCase):
         msg1 = GET_ADDR(ptr="x00000054", addr="b10001101001")
         self.assertEqual(msg1.id, "x0014")
         self.assertEqual(msg1.pad, "b000")
+        with self.assertRaises(AttributeError):
+            msg1.id = 'b1'
+            
+    def testWritableFields(self):
+        builder = MessageBuilder()
+        GET_ADDR = builder.build_message_class("GET_ADDR", msg_fmts["GET_ADDR"])
+        msg1 = GET_ADDR(ptr="x00000054", addr="b10001101001")
+        with self.assertRaises(InvalidFieldDataException):
+            msg1.ptr = 'x1000000000000000000000000000000000000000'
+        with self.assertRaises(InvalidFieldDataException):
+            msg1.ptr.value = 'x1000000000000000000000000000000000000000'
 
     def testAutoUpdateFields(self):
         builder = MessageBuilder()

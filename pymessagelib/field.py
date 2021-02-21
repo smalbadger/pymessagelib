@@ -9,7 +9,7 @@ from enum import Enum
 import math
 import inspect
 
-from _exceptions import InvalidDataFormatException, ContextDataMismatchException
+from _exceptions import InvalidDataFormatException, ContextDataMismatchException, InvalidFieldDataException
 
 
 class Field(ABC):
@@ -19,7 +19,7 @@ class Field(ABC):
         Dec = 10
         Hex = 16
 
-    def __init__(self, length, value=None, format=None, context=None):
+    def __init__(self, length, value=None, fmt=None, context=None):
         self._context = context
         self._unit_length = length
         self._bit_length = length * type(self).bits_per_unit
@@ -32,9 +32,9 @@ class Field(ABC):
             "Auto Update": inspect.isfunction(value),
         }
 
-        # Determine the format the value will be rendered
-        if format:
-            self._format = format
+        # Determine the format the value will be rendered as
+        if fmt:
+            self._format = fmt
         elif value is not None and not inspect.isfunction(value):
             self._format = Field.get_format(value)
         else:
@@ -58,8 +58,7 @@ class Field(ABC):
         pad_to_length = pad_to_length if pad_to_length > 0 else math.ceil(self._bit_length / math.log2(fmt.value))
         if isinstance(value, Message):
             return value.render()
-        else:
-            return Field.render_value(value=value, fmt=fmt, pad_to_length=pad_to_length)
+        return Field.render_value(value=value, fmt=fmt, pad_to_length=pad_to_length)
 
     @staticmethod
     def render_value(*, value, fmt, pad_to_length):
@@ -113,7 +112,7 @@ class Field(ABC):
             if is_msg:
                 self.context = context
         else:
-            raise Exception()  # TODO: raise more narrow exception
+            raise InvalidFieldDataException(f"{value} is not a valid value for {self}")
 
     @property
     def context(self):
@@ -140,8 +139,7 @@ class Field(ABC):
     def __repr__(self):
         if self.value:
             return self.render()
-        else:
-            return f"<{type(self).__name__} Field, length={self._unit_length} ({len(self)} bits), value=undefined>"
+        return f"<{type(self).__name__} Field, length={self._unit_length} ({len(self)} bits), value=undefined>"
 
     def __eq__(self, other):
 
@@ -215,7 +213,7 @@ class Field(ABC):
         inv_bin_val = bin_val.replace("0", "_").replace("1", "0").replace("_", "0")
         inv_val = Field.render(value=inv_bin_val, fmt=self._format)
         newfield = type(self).__new__()
-        newfield.__init__(self.length_as_format(self._format), value=inv_val, format=self._format)
+        newfield.__init__(self.length_as_format(self._format), value=inv_val, fmt=self._format)
         return newfield
 
     def __bool__(self):
@@ -249,8 +247,7 @@ class Field(ABC):
         if len(numeric_value) <= length:
             padding = "0" * (length - len(numeric_value))
             return f"{prefix}{padding}{numeric_value}"
-        else:
-            raise Exception("Value is already longer than padding length")
+        raise Exception("Value is already longer than padding length")
 
 
 class Bits(Field):
