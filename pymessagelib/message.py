@@ -47,8 +47,7 @@ class Message(ABC):
                 msg = field.value
                 msg._parent_field = field
                 return msg
-            else:
-                return field
+            return field
 
         return get_field
 
