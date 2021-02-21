@@ -1,5 +1,6 @@
+[![Build Status](https://travis-ci.com/smalbadger/pymessagelib.svg?branch=main)](https://travis-ci.com/smalbadger/pymessagelib)
+[![codecov](https://codecov.io/gh/smalbadger/pymessagelib/branch/main/graph/badge.svg?token=QJ5EOBJ0P6)](https://codecov.io/gh/smalbadger/pymessagelib)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-
 
 # PyMessageLib
 A simple Python library for constructing/dissecting messages
