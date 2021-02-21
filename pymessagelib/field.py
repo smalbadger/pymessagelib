@@ -139,8 +139,7 @@ class Field(ABC):
     def __repr__(self):
         if self.value:
             return self.render()
-        else:
-            return f"<{type(self).__name__} Field, length={self._unit_length} ({len(self)} bits), value=undefined>"
+        return f"<{type(self).__name__} Field, length={self._unit_length} ({len(self)} bits), value=undefined>"
 
     def __eq__(self, other):
 
