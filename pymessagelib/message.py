@@ -10,7 +10,7 @@ from typing import Dict
 from copy import deepcopy
 
 from field import Field
-from _exceptions import InvalidDataFormatException
+from _exceptions import InvalidDataFormatException, MissingFieldDataException
 
 
 class Message(ABC):
@@ -164,5 +164,5 @@ class Message(ABC):
         # 3. Construct a new message providing data only for writable fields.
         try:
             return cls(**writable_field_data)
-        except Exception as e:  # TODO: Narrow exception handling
+        except (MissingFieldDataException, InvalidFieldDataException) as e:
             raise InvalidDataFormatException(f"the data '{data}' doesn't fit the format for '{cls.__name__}'")
