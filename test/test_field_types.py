@@ -1,7 +1,7 @@
 import unittest
 from message_builder import MessageBuilder
-from msg_definitions import msg_fmts, register_defs
-from _exceptions import InvalidFieldDataException
+from msg_definitions import msg_fmts, register_defs, circular_dep
+from _exceptions import InvalidFieldDataException, CircularDependencyException
 
 
 class TestFieldTypes(unittest.TestCase):
@@ -32,6 +32,10 @@ class TestFieldTypes(unittest.TestCase):
         self.assertEqual(msg1.crc, "x0000")
         msg1.ptr = "x54000000"
         self.assertEqual(msg1.crc, "x5400")
+
+        CIRCULAR_DEP = builder.build_message_class("CIRCULAR_DEP", circular_dep["CIRCULAR_DEP"])
+        with self.assertRaises(CircularDependencyException):
+            CIRCULAR_DEP(ptr="x00000054", addr="b01")
 
     def testNestedFields(self):
         builder = MessageBuilder()

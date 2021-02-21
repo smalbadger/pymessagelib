@@ -23,3 +23,7 @@ class InvalidDataFormatException(Exception):
 
 class ContextDataMismatchException(Exception):
     pass
+
+
+class CircularDependencyException(Exception):
+    pass

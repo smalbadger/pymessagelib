@@ -10,7 +10,12 @@ from typing import Dict
 from copy import deepcopy
 
 from field import Field
-from _exceptions import InvalidDataFormatException, MissingFieldDataException, InvalidFieldDataException
+from _exceptions import (
+    InvalidDataFormatException,
+    MissingFieldDataException,
+    InvalidFieldDataException,
+    CircularDependencyException,
+)
 
 
 class Message(ABC):
@@ -80,7 +85,7 @@ class Message(ABC):
                     try_again = True
 
             if i == len(auto_update_fields) - 1 and try_again:
-                raise Exception("Circular field dependency detected!")
+                raise CircularDependencyException("Circular field dependency detected!")
             elif not try_again:
                 break
 
