@@ -22,6 +22,6 @@ install:
 # 'python' points to Python 2.7 on macOS but points to Python 3.8 on Linux and Windows
 # 'python3' is a 'command not found' error on Windows but 'py' works on Windows only
 script:
-  - python3 -m unittest -v || python -m unittest -v
+  - coverage -m unittest -v
 after_success:
   - bash <(curl -s https://codecov.io/bash)
