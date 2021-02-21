@@ -63,7 +63,7 @@ class MessageBuilder:
                         context = type(val)
                         val = val.render()
 
-                    if msg_cls.fmt[param].value_is_valid(val):
+                    if msg_cls.format[param].value_is_valid(val):
                         self._fields[param].value = val
                         if context:
                             self._fields[param].context = context
