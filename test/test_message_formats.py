@@ -7,5 +7,5 @@ class TestMessageFormats(unittest.TestCase):
     def testFormatFieldRepr(self):
         builder = MessageBuilder()
         OUTPUTS = builder.build_message_class("OUTPUTS", register_defs["OUTPUTS"])
-        
-        self.assertTrue("Byte" in repr(OUTPUTS.format['cautions']))
+
+        self.assertTrue("Byte" in repr(OUTPUTS.format["cautions"]))
