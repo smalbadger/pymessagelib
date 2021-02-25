@@ -14,7 +14,7 @@ msg_fmts = {
         "ptr": Bytes(3),
         "addr": Bits(2),
         "pad": Bits(4, value="b0000"),
-        "crc": lambda ptr, addr, pad: EKMS32Bit(ptr, addr, pad),
+        "crc": Bytes(4, value=lambda ptr, addr, pad: EKMS32Bit(ptr, addr, pad)),
     },
     "WRITE_REGISTER_REQUEST": {
         "mid": Nibbles(4, value="x0014"),
