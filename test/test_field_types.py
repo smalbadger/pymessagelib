@@ -5,10 +5,9 @@ from _exceptions import InvalidFieldDataException, CircularDependencyException
 
 
 class TestFieldTypes(unittest.TestCase):
-    
     def setUp(self):
         self.builder = MessageBuilder(definitions=msg_fmts)
-    
+
     def testConstantFields(self):
         msg1 = self.builder.GET_ADDR(ptr="x00000054", addr="b10001101001")
         self.assertEqual(msg1.id, "x0014")

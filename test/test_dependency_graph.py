@@ -9,13 +9,13 @@ class TestDependencyGraph(unittest.TestCase):
     def testAddingEdges(self):
         self.graph.addEdge(1, 2)
         self.graph.addEdge(2, 3)
-        
+
     def testCyclic(self):
         self.graph.addEdge("hello", "world")
         self.graph.addEdge("world", "cool")
         self.graph.addEdge("cool", "hello")
         self.assertTrue(self.graph.isCyclic())
-        
+
     def testCycle(self):
         self.graph.addEdge("hello", "world")
         self.graph.addEdge("world", "cool")

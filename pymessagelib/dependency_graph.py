@@ -16,12 +16,12 @@ class DependencyGraph:
     """
     The DependencyGraph class is used for modeling field dependencies. Once the graph has been
     built, cycles can be detected and an optimal update sequence can be obtained.
-    
+
     This is important because cycles in auto-update fields will result in unstable fields and/or
-    infinite looping while updating. Fields that depend on each other need to be updated in the 
+    infinite looping while updating. Fields that depend on each other need to be updated in the
     correct order to make sure they each end up with the correct values.
     """
-    
+
     def __init__(self):
         """Constructs an empty DependencyGraph. Each edge must be added individually."""
         self.graph = defaultdict(list)
@@ -37,10 +37,10 @@ class DependencyGraph:
     def isCyclic(self):
         """
         Determine if there are any cycles in the graph. If there are return True. Else, return False.
-        
+
         If a cycle is detected, a list of the nodes in the cycle is stored in self._cycle
         """
-        
+
         def isCyclicUtil(v, visited, recStack):
             """Recursive portion of the cycle detection algorithm."""
             assert v in visited
@@ -70,7 +70,7 @@ class DependencyGraph:
                 if isCyclicUtil(node, visited, recStack):
                     return True
         return False
-    
+
     @property
     def cycle(self):
         """If there is a cycle, return the list of nodes in the cycle."""

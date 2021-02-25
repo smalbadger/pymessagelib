@@ -24,10 +24,10 @@ class MessageBuilder:
     """
     The message builder dynamically creates message classes when given valid message formats.
 
-    To load definitions, either provide them in the constructor, or call the load_definitions method. 
+    To load definitions, either provide them in the constructor, or call the load_definitions method.
     Multiple calls to the load_definitions method will add to the existing loaded definitions.
-    
-    All message definitions that are loaded will become accessible by message name as an attribute of 
+
+    All message definitions that are loaded will become accessible by message name as an attribute of
     the builder. For example, if a definition for a message called "GET_ADDR" is loaded into an object
     called `builder`, the generated class could be accessed via `builder.GET_ADDR`
     """
@@ -43,7 +43,7 @@ class MessageBuilder:
 
     def build_message_class(self, cls_name, fmt):
         """
-        Builds a message class when given the name of the message and a dictionary mapping field names 
+        Builds a message class when given the name of the message and a dictionary mapping field names
         to field objects.
         """
 
