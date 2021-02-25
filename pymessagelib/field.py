@@ -154,59 +154,59 @@ class Field(ABC):
 
         return self_int_val == other_int_val
 
-    def __lt__(self, other):
-        pass
-
-    def __bytes__(self):
-        pass
-
-    def __call__(self):
-        pass
-
     def __len__(self):
         return self._bit_length
 
-    def __contains__(self):
-        pass
-
-    def __getitem__(self):
-        pass
-
-    def __setitem__(self, value):
-        pass
-
-    def __add__(self, other):
-        pass
-
-    def __sub__(self, other):
-        pass
-
-    def __lshift__(self, amount):
-        pass
-
-    def __rshift__(self, amount):
-        pass
-
-    def __and__(self, other):
-        pass
-
-    def __rand__(self, other):
-        pass
-
-    def __xor__(self, other):
-        pass
-
-    def __rxor__(self, other):
-        pass
-
-    def __or__(self, other):
-        pass
-
-    def __ror__(self, other):
-        pass
-
-    def __int__(self):
-        pass
+#     def __lt__(self, other):
+#         pass
+# 
+#     def __bytes__(self):
+#         pass
+# 
+#     def __call__(self):
+#         pass
+# 
+#     def __contains__(self):
+#         pass
+# 
+#     def __getitem__(self):
+#         pass
+# 
+#     def __setitem__(self, value):
+#         pass
+# 
+#     def __add__(self, other):
+#         pass
+# 
+#     def __sub__(self, other):
+#         pass
+# 
+#     def __lshift__(self, amount):
+#         pass
+# 
+#     def __rshift__(self, amount):
+#         pass
+# 
+#     def __and__(self, other):
+#         pass
+# 
+#     def __rand__(self, other):
+#         pass
+# 
+#     def __xor__(self, other):
+#         pass
+# 
+#     def __rxor__(self, other):
+#         pass
+# 
+#     def __or__(self, other):
+#         pass
+# 
+#     def __ror__(self, other):
+#         pass
+# 
+#     def __int__(self):
+#         pass
 
     def __invert__(self):
         bin_val = self.render(fmt=Field.Format.Bin)
