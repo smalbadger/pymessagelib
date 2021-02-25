@@ -5,43 +5,37 @@ from _exceptions import InvalidFieldDataException, CircularDependencyException
 
 
 class TestFieldTypes(unittest.TestCase):
+    
+    def setUp(self):
+        self.builder = MessageBuilder(definitions=msg_fmts)
+    
     def testConstantFields(self):
-        builder = MessageBuilder()
-        GET_ADDR = builder.build_message_class("GET_ADDR", msg_fmts["GET_ADDR"])
-        msg1 = GET_ADDR(ptr="x00000054", addr="b10001101001")
+        msg1 = self.builder.GET_ADDR(ptr="x00000054", addr="b10001101001")
         self.assertEqual(msg1.id, "x0014")
         self.assertEqual(msg1.pad, "b000")
         with self.assertRaises(AttributeError):
             msg1.id = "b1"
 
     def testWritableFields(self):
-        builder = MessageBuilder()
-        GET_ADDR = builder.build_message_class("GET_ADDR", msg_fmts["GET_ADDR"])
-        msg1 = GET_ADDR(ptr="x00000054", addr="b10001101001")
+        msg1 = self.builder.GET_ADDR(ptr="x00000054", addr="b10001101001")
         with self.assertRaises(InvalidFieldDataException):
             msg1.ptr = "x1000000000000000000000000000000000000000"
         with self.assertRaises(InvalidFieldDataException):
             msg1.ptr.value = "x1000000000000000000000000000000000000000"
 
     def testAutoUpdateFields(self):
-        builder = MessageBuilder()
-        GET_ADDR = builder.build_message_class("GET_ADDR", msg_fmts["GET_ADDR"])
-
-        msg1 = GET_ADDR(ptr="x00000054", addr="b10001101001")
+        msg1 = self.builder.GET_ADDR(ptr="x00000054", addr="b10001101001")
         self.assertEqual(msg1.length, "x0014")
         self.assertEqual(msg1.crc, "x0000")
         msg1.ptr = "x54000000"
         self.assertEqual(msg1.crc, "x5400")
 
-        CIRCULAR_DEP = builder.build_message_class("CIRCULAR_DEP", circular_dep["CIRCULAR_DEP"])
         with self.assertRaises(CircularDependencyException):
-            CIRCULAR_DEP(ptr="x00000054", addr="b01")
+            builder = MessageBuilder(circular_dep)
 
     def testNestedFields(self):
-        builder = MessageBuilder()
-        WRITE_REGISTER_REQUEST = builder.build_message_class(
-            "WRITE_REGISTER_REQUEST", msg_fmts["WRITE_REGISTER_REQUEST"]
-        )
+        builder = MessageBuilder(register_defs)
+        WRITE_REGISTER_REQUEST = self.builder.WRITE_REGISTER_REQUEST
         OUTPUTS = builder.build_message_class("OUTPUTS", register_defs["OUTPUTS"])
         INPUTS = builder.build_message_class("INPUTS", register_defs["INPUTS"])
 

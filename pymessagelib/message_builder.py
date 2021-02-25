@@ -4,16 +4,27 @@ Created on Feb 18, 2021
 @author: smalb
 """
 
+from typing import Dict
 from message import Message
 from field import Field
+import inspect
 
-from _exceptions import MissingFieldDataException, InvalidFieldException, InvalidFieldDataException
+from _exceptions import MissingFieldDataException, InvalidFieldException, InvalidFieldDataException,\
+    CircularDependencyException
+from dependency_graph import DependencyGraph
 
 
 class MessageBuilder:
     """
     The message builder dynamically creates message classes given valid message formats.
     """
+    
+    def __init__(self, definitions={}):
+        self.load_definitions(definitions)
+        
+    def load_definitions(self, definitions:Dict):
+        for name, definition in definitions.items():
+            self.__dict__[name] = self.build_message_class(name, definition)
 
     def build_message_classes(self, msg_format_dict):
         """
@@ -44,6 +55,8 @@ class MessageBuilder:
                     read_only_fields[name] = item
                 if item.is_auto_updated:
                     auto_updated_fields[name] = item
+            else:
+                raise InvalidFieldException(f"cls_name: {name} must be a Field object.")
 
         def __init__(self, **kwargs):
             Message.__init__(self, all_fields)
@@ -75,6 +88,15 @@ class MessageBuilder:
                     raise InvalidFieldException(f"'{param}' is not a valid field in the {cls_name} message.")
 
             self.update_fields()
+            
+        self.dependency_graph = DependencyGraph(len(auto_updated_fields))
+        for name, field in auto_updated_fields.items():
+            dependencies = inspect.getfullargspec(field.value_updater)[0]
+            for dependency in dependencies:
+                self.dependency_graph.addEdge(name, dependency)
+                
+        if self.dependency_graph.cycle is not None:
+            raise CircularDependencyException(f"Detected cycle in auto-update fields: {' -> '.join(self.dependency_graph.cycle)}")
 
         # Make a getter for all fields and a setter only for writable fields
         for name, field in all_fields.items():
@@ -85,4 +107,5 @@ class MessageBuilder:
         msg_cls.__init__ = __init__
         msg_cls.format = fmt
         msg_cls.bit_length = sum((len(field) for field in fmt.values()))
+
         return msg_cls
