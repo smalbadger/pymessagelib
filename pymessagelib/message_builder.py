@@ -4,6 +4,7 @@ Created on Feb 18, 2021
 @author: smalb
 """
 
+from typing import Dict
 from message import Message
 from field import Field
 import inspect
@@ -17,6 +18,13 @@ class MessageBuilder:
     """
     The message builder dynamically creates message classes given valid message formats.
     """
+    
+    def __init__(self, definitions={}):
+        self.load_definitions(definitions)
+        
+    def load_definitions(self, definitions:Dict):
+        for name, definition in definitions.items():
+            self.__dict__[name] = self.build_message_class(name, definition)
 
     def build_message_classes(self, msg_format_dict):
         """
@@ -47,6 +55,8 @@ class MessageBuilder:
                     read_only_fields[name] = item
                 if item.is_auto_updated:
                     auto_updated_fields[name] = item
+            else:
+                raise InvalidFieldException(f"cls_name: {name} must be a Field object.")
 
         def __init__(self, **kwargs):
             Message.__init__(self, all_fields)

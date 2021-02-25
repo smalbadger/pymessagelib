@@ -5,9 +5,8 @@ from msg_definitions import msg_fmts, register_defs
 
 class TestFieldComparison(unittest.TestCase):
     def testFieldEquals(self):
-        builder = MessageBuilder()
-        GET_ADDR = builder.build_message_class("GET_ADDR", msg_fmts["GET_ADDR"])
-        msg1 = GET_ADDR(ptr="x00000054", addr="b10001101001")
+        builder = MessageBuilder(definitions=msg_fmts)
+        msg1 = builder.GET_ADDR(ptr="x00000054", addr="b10001101001")
         self.assertTrue(msg1.id != "x4")
         self.assertTrue(msg1.id == "x14")
         self.assertTrue(msg1.id == "x014")
