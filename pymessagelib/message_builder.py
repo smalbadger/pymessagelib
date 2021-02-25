@@ -89,14 +89,14 @@ class MessageBuilder:
 
             self.update_fields()
             
-        self.dependency_graph = DependencyGraph(len(auto_updated_fields))
+        msg_cls.dependency_graph = DependencyGraph()
         for name, field in auto_updated_fields.items():
             dependencies = inspect.getfullargspec(field.value_updater)[0]
             for dependency in dependencies:
-                self.dependency_graph.addEdge(name, dependency)
+                msg_cls.dependency_graph.addEdge(name, dependency)
                 
-        if self.dependency_graph.cycle is not None:
-            raise CircularDependencyException(f"Detected cycle in auto-update fields: {' -> '.join(self.dependency_graph.cycle)}")
+        if msg_cls.dependency_graph.cycle is not None:
+            raise CircularDependencyException(f"Detected cycle in auto-update fields: {' -> '.join(msg_cls.dependency_graph.cycle)}")
 
         # Make a getter for all fields and a setter only for writable fields
         for name, field in all_fields.items():

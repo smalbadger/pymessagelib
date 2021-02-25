@@ -4,7 +4,7 @@ from dependency_graph import DependencyGraph
 
 class TestDependencyGraph(unittest.TestCase):
     def setUp(self):
-        self.graph = DependencyGraph(3)
+        self.graph = DependencyGraph()
 
     def testAddingEdges(self):
         self.graph.addEdge(1, 2)

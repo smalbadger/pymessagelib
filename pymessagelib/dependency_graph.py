@@ -1,6 +1,9 @@
 """
 Created on Feb 24, 2021
 
+This module contains the DependencyGraph class which is used by each Message to model
+dependencies of auto-update fields.
+
 This code was adapted from https://www.geeksforgeeks.org/detect-cycle-in-a-graph/
 
 @author: smalb
@@ -10,9 +13,12 @@ from collections import defaultdict
 
 
 class DependencyGraph:
-    def __init__(self, num_vertices):
+    """
+    The DependencyGraph class is used for modeling field dependencies. After 
+    """
+    
+    def __init__(self):
         self.graph = defaultdict(list)
-        self.num_vertices = num_vertices
         self._cycle = None
 
     def addEdge(self, u, v):
@@ -56,3 +62,7 @@ class DependencyGraph:
     def cycle(self):
         if self.isCyclic():
             return self._cycle
+
+    @property
+    def num_vertices(self):
+        return len(self.graph)
