@@ -33,9 +33,8 @@ class TestFieldTypes(unittest.TestCase):
         msg1.ptr = "x54000000"
         self.assertEqual(msg1.crc, "x5400")
 
-        CIRCULAR_DEP = builder.build_message_class("CIRCULAR_DEP", circular_dep["CIRCULAR_DEP"])
         with self.assertRaises(CircularDependencyException):
-            CIRCULAR_DEP(ptr="x00000054", addr="b01")
+            builder.build_message_class("CIRCULAR_DEP", circular_dep["CIRCULAR_DEP"])
 
     def testNestedFields(self):
         builder = MessageBuilder()

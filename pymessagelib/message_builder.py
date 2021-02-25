@@ -6,8 +6,11 @@ Created on Feb 18, 2021
 
 from message import Message
 from field import Field
+import inspect
 
-from _exceptions import MissingFieldDataException, InvalidFieldException, InvalidFieldDataException
+from _exceptions import MissingFieldDataException, InvalidFieldException, InvalidFieldDataException,\
+    CircularDependencyException
+from dependency_graph import DependencyGraph
 
 
 class MessageBuilder:
@@ -75,6 +78,15 @@ class MessageBuilder:
                     raise InvalidFieldException(f"'{param}' is not a valid field in the {cls_name} message.")
 
             self.update_fields()
+            
+        self.dependency_graph = DependencyGraph(len(auto_updated_fields))
+        for name, field in auto_updated_fields.items():
+            dependencies = inspect.getfullargspec(field.value_updater)[0]
+            for dependency in dependencies:
+                self.dependency_graph.addEdge(name, dependency)
+                
+        if self.dependency_graph.cycle is not None:
+            raise CircularDependencyException(f"Detected cycle in auto-update fields: {' -> '.join(self.dependency_graph.cycle)}")
 
         # Make a getter for all fields and a setter only for writable fields
         for name, field in all_fields.items():
@@ -85,4 +97,5 @@ class MessageBuilder:
         msg_cls.__init__ = __init__
         msg_cls.format = fmt
         msg_cls.bit_length = sum((len(field) for field in fmt.values()))
+
         return msg_cls
