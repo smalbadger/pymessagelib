@@ -50,3 +50,14 @@ register_defs = {
         "unused": Byte(1, value="x0"),
     },
 }
+
+circular_dep = {
+    "CIRCULAR_DEP": {
+        "id": Nibbles(4, value="x0015"),
+        "len": Nibbles(2, value=lambda crc: crc),
+        "ptr": Bytes(3),
+        "addr": Bits(2),
+        "pad": Bits(4, value="b0000"),
+        "crc": Nibbles(2, value=lambda len: len),
+    },
+}
