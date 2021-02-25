@@ -83,10 +83,8 @@ class Message(ABC):
                 )
                 if field._value is None:
                     try_again = True
-
-            if i == len(auto_update_fields) - 1 and try_again:
-                raise CircularDependencyException("Circular field dependency detected!")
-            elif not try_again:
+                    
+            if not try_again:
                 break
 
     def render(self):
