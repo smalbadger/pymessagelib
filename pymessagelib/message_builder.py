@@ -1,4 +1,6 @@
 """
+This module contains the MessageBuilder class which generates Message subclasses from message format definitions.
+
 Created on Feb 18, 2021
 
 @author: smalb
@@ -9,34 +11,41 @@ from message import Message
 from field import Field
 import inspect
 
-from _exceptions import MissingFieldDataException, InvalidFieldException, InvalidFieldDataException,\
-    CircularDependencyException
+from _exceptions import (
+    MissingFieldDataException,
+    InvalidFieldException,
+    InvalidFieldDataException,
+    CircularDependencyException,
+)
 from dependency_graph import DependencyGraph
 
 
 class MessageBuilder:
     """
-    The message builder dynamically creates message classes given valid message formats.
-    """
+    The message builder dynamically creates message classes when given valid message formats.
+
+    To load definitions, either provide them in the constructor, or call the load_definitions method. 
+    Multiple calls to the load_definitions method will add to the existing loaded definitions.
     
+    All message definitions that are loaded will become accessible by message name as an attribute of 
+    the builder. For example, if a definition for a message called "GET_ADDR" is loaded into an object
+    called `builder`, the generated class could be accessed via `builder.GET_ADDR`
+    """
+
     def __init__(self, definitions={}):
+        """Constructs a MessageBuilder class and loads the provided definitions."""
         self.load_definitions(definitions)
-        
-    def load_definitions(self, definitions:Dict):
+
+    def load_definitions(self, definitions: Dict):
+        """Loads the provided definitions into this MessageBuilder object."""
         for name, definition in definitions.items():
             self.__dict__[name] = self.build_message_class(name, definition)
 
-    def build_message_classes(self, msg_format_dict):
-        """
-        :param msg_format_dict: Maps message names to formats. The formats are a dictionary that follows the structure defined in the README.md
-        :type msg_format_dict: Dict
-        """
-        messages = {}
-        for msg_name, msg_format in msg_format_dict.items():
-            messages[msg_name] = self.build_message_class(msg_name, msg_format)
-        return messages
-
     def build_message_class(self, cls_name, fmt):
+        """
+        Builds a message class when given the name of the message and a dictionary mapping field names 
+        to field objects.
+        """
 
         # Create an empty class with the appropriate name that inherits from Message.
         msg_cls = type(cls_name, (Message,), {})
@@ -59,6 +68,7 @@ class MessageBuilder:
                 raise InvalidFieldException(f"cls_name: {name} must be a Field object.")
 
         def __init__(self, **kwargs):
+            """Constructor for generated Message subclasses."""
             Message.__init__(self, all_fields)
 
             # Verify values for all writable fields were provided via params
@@ -88,15 +98,17 @@ class MessageBuilder:
                     raise InvalidFieldException(f"'{param}' is not a valid field in the {cls_name} message.")
 
             self.update_fields()
-            
+
         msg_cls.dependency_graph = DependencyGraph()
         for name, field in auto_updated_fields.items():
             dependencies = inspect.getfullargspec(field.value_updater)[0]
             for dependency in dependencies:
                 msg_cls.dependency_graph.addEdge(name, dependency)
-                
+
         if msg_cls.dependency_graph.cycle is not None:
-            raise CircularDependencyException(f"Detected cycle in auto-update fields: {' -> '.join(msg_cls.dependency_graph.cycle)}")
+            raise CircularDependencyException(
+                f"Detected cycle in auto-update fields: {' -> '.join(msg_cls.dependency_graph.cycle)}"
+            )
 
         # Make a getter for all fields and a setter only for writable fields
         for name, field in all_fields.items():
