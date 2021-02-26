@@ -20,6 +20,7 @@ jobs:
       with:
         path: 'pymessagelib'
         badge-location: 'badges/interrogate_badge.svg'
+        verbose: 2
 
     - name: Commit files
       run: |
