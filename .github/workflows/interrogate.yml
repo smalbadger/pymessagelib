@@ -18,12 +18,12 @@ jobs:
       with:
         python-version: 3.8
 
-    - name: Pull from origin
+    - name: Checkout remote branch
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git config --local pull.rebase true
-        git pull origin ${{ env.GITHUB_REF_SLUG }}
+        git config --local pull.rebase false
+        git checkout ${{ env.GITHUB_REF_SLUG }} origin/${{ env.GITHUB_REF_SLUG }}
 
     - name: Python Interrogate Check
       uses: JackMcKew/python-interrogate-check@main
@@ -37,7 +37,6 @@ jobs:
         git config --local user.name "GitHub Action"
         git add badges/interrogate_badge.svg
         git commit -m "Update interrogate_badge.svg" -a || true
-        git pull origin ${{ env.GITHUB_REF_SLUG }}
 
     - name: Push changes
       if: success()
