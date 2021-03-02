@@ -30,7 +30,6 @@ jobs:
         git config --local user.name "GitHub Action"
         git add badges/interrogate_badge.svg
         git commit -m "Update interrogate_badge.svg" -a || true
-        echo "refs/heads/${{ env.GITHUB_REF_SLUG }}"
 
     - name: Push changes
       if: success()
