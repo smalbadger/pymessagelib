@@ -138,7 +138,6 @@ class Message(ABC):
         #TODO: Determine which exception to raise when context is not derived from the MessageClass.
         """
         assert self._parent_field is not None
-        # TODO: Verify context is a subclass of Message
         self._parent_field.context = context
 
     def update_fields(self) -> None:
