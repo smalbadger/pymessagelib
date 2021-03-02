@@ -12,7 +12,8 @@ from enum import Enum
 import math
 import inspect
 
-from _exceptions import InvalidDataFormatException, ContextDataMismatchException, InvalidFieldDataException
+from _exceptions import InvalidDataFormatException, ContextDataMismatchException, InvalidFieldDataException,\
+    InvalidFormatException
 
 
 class Field(ABC):
@@ -37,8 +38,13 @@ class Field(ABC):
         Dec = 10
         Hex = 16
 
-    def __init__(self, length, value=None, fmt=None, context=None):
+    def __init__(self, length=0, value=None, fmt=None, context=None):
         """Constructs a Field object"""
+        
+        if not length and type(self).__name__.endswith('s'):
+            raise InvalidFormatException(f"Must provide length for plural-named field types {type(self).__name__}")
+        
+        
         self._context = context
         self._unit_length = length
         self._bit_length = length * type(self).bits_per_unit
