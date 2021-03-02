@@ -36,5 +36,5 @@ jobs:
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.ACCESS_TOKEN }}
-        branch: ${{ env.GITHUB_REF_SLUG }}
+        branch: ${{ env.GITHUB_REF }}
         directory: badges/
