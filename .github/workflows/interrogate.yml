@@ -1,6 +1,6 @@
 name: Interrogate documentation
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
   build:
@@ -8,6 +8,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Inject slug/short variables
+      uses: rlespinasse/github-slug-action@v3.x
+    
     - uses: actions/checkout@v2
 
     - name: Set up Python 3.8
@@ -26,10 +29,12 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add badges/interrogate_badge.svg
-        git commit -m "Update interrogate_badge.svg" -a
+        git commit -m "Update interrogate_badge.svg" -a || true
 
     - name: Push changes
       if: success()
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.ACCESS_TOKEN }}
+        branch: refs/heads/${{ env.GITHUB_REF_SLUG }}
+        directory: badges/
