@@ -38,12 +38,13 @@ class Field(ABC):
         Dec = 10
         Hex = 16
 
-    def __init__(self, length=0, value=None, fmt=None, context=None):
+    def __init__(self, length=1, value=None, fmt=None, context=None):
         """Constructs a Field object"""
         
-        if not length and type(self).__name__.endswith('s'):
-            raise InvalidFormatException(f"Must provide length for plural-named field types {type(self).__name__}")
-        
+        if not length>1 and type(self).__name__.endswith('s'):
+            raise InvalidFormatException(f"Must provide length for plural-named field type {type(self).__name__}")
+        elif length>1 and not type(self).__name__.endswith('s'):
+            raise InvalidFormatException(f"Cannot provide length for single-named field type {type(self).__name__}")
         
         self._context = context
         self._unit_length = length
