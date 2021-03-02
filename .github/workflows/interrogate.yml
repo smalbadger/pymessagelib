@@ -8,13 +8,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-       # Just add this  => 
-       - name: Inject slug/short variables
-         uses: rlespinasse/github-slug-action@v3.x
-      
-       # And you get this  => 
-       - name: Print slug/short variables
-         run: |
+    - name: Inject slug/short variables
+      uses: rlespinasse/github-slug-action@v3.x
+    - name: Print slug/short variables
+      run: |
           echo "Slug variables"
           echo " - ${{ env.GITHUB_REF_SLUG }}"    
           echo " - ${{ env.GITHUB_HEAD_REF_SLUG }}"
