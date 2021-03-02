@@ -23,7 +23,7 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git config --local pull.rebase false
-        git checkout ${{ env.GITHUB_REF_SLUG }} origin/${{ env.GITHUB_REF_SLUG }}
+        git checkout -track origin/${{ env.GITHUB_REF_SLUG }}
 
     - name: Python Interrogate Check
       uses: JackMcKew/python-interrogate-check@main
