@@ -12,18 +12,12 @@ jobs:
       uses: rlespinasse/github-slug-action@v3.x
     
     - uses: actions/checkout@v2
+      ref: ${{ env.GITHUB_REF_SLUG }}
 
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
-
-    - name: Checkout remote branch
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git config --local pull.rebase false
-        git checkout -track origin/${{ env.GITHUB_REF_SLUG }}
 
     - name: Python Interrogate Check
       uses: JackMcKew/python-interrogate-check@main
