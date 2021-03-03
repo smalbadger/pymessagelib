@@ -22,3 +22,7 @@ class TestFieldConstruction(unittest.TestCase):
             field = Bits(0)
         with self.assertRaises(InvalidFormatException):
             field = Bits(1)
+
+    def testEmptyFieldName(self):
+        field = Bit()
+        self.assertEqual(field.name, "")

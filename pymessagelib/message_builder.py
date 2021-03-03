@@ -99,22 +99,25 @@ class MessageBuilder:
 
             self.update_fields()
 
+        # Construct a graph of all dependencies - used for detecting circular imports and choosing order of updates.
         msg_cls.dependency_graph = DependencyGraph()
         for name, field in auto_updated_fields.items():
             dependencies = inspect.getfullargspec(field.value_updater)[0]
             for dependency in dependencies:
                 msg_cls.dependency_graph.addEdge(name, dependency)
 
+        # Verify no cycles exist in auto-update fields
         if msg_cls.dependency_graph.cycle is not None:
             raise CircularDependencyException(
                 f"Detected cycle in auto-update fields: {' -> '.join(msg_cls.dependency_graph.cycle)}"
             )
 
-        # Make a getter for all fields and a setter only for writable fields
+        # Make a getter for all fields and a setter only for writable fields. Set each field name.
         for name, field in all_fields.items():
             getter = Message._create_getter(name)
             setter = Message._create_setter(name, field) if name in writable_fields else None
             setattr(msg_cls, name, property(getter, setter))
+            field._name = name
 
         msg_cls.__init__ = __init__
         msg_cls.format = fmt
