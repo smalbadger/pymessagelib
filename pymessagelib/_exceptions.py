@@ -24,6 +24,8 @@ class InvalidFormatException(Exception):
 class InvalidDataFormatException(Exception):
     pass
 
+class InvalidMessageDefinitionException(Exception):
+    pass
 
 class ContextDataMismatchException(Exception):
     pass

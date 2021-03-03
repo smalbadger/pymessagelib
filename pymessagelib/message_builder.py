@@ -16,7 +16,9 @@ from _exceptions import (
     MissingFieldDataException,
     InvalidFieldException,
     InvalidFieldDataException,
+    InvalidDataFormatException,
     CircularDependencyException,
+    InvalidMessageDefinitionException,
 )
 from dependency_graph import DependencyGraph
 
@@ -35,12 +37,16 @@ class MessageBuilder:
 
     def __init__(self, definitions={}):
         """Constructs a MessageBuilder class and loads the provided definitions."""
+        self.message_classes = []
         self.load_definitions(definitions)
-
+        
     def load_definitions(self, definitions: Dict):
         """Loads the provided definitions into this MessageBuilder object."""
+        
         for name, definition in definitions.items():
-            self.__dict__[name] = self.build_message_class(name, definition)
+            cls = self.build_message_class(name, definition)
+            self.__dict__[name] = cls
+            self.message_classes.append(cls)
 
     def build_message_class(self, cls_name, fmt):
         """
@@ -136,3 +142,24 @@ class MessageBuilder:
         msg_cls.bit_length = sum((len(field) for field in fmt.values()))
 
         return msg_cls
+
+    def build_message(self, data):
+        matches = []
+        message = None
+        for msg_cls in self.message_classes:
+            try:
+                msg = msg_cls.from_data(data)
+            except InvalidDataFormatException as e:
+                pass
+            else:
+                matches.append(msg_cls)
+                message = msg
+            
+        if len(matches) == 0:
+            msg_list = "\n".join([f"\t- {msg_cls.__name__}" for msg_cls in self.message_classes])
+            raise InvalidDataFormatException(f"Data '{data}' could not be resolved to any of the following message types:\n{msg_list}")
+        elif len(matches) == 1:
+            return message
+        else:
+            msg_list = "\n".join([f"\t- {msg_cls.__name__}" for msg_cls in matches])
+            raise InvalidMessageDefinitionException(f"Detected multiple message definitions that match the data '{data}':\n{msg_list}")
