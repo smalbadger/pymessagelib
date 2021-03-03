@@ -71,8 +71,8 @@ class MessageBuilder:
             def __len__(self):
                 length = 0
                 for field in all_fields.values():
-                    if not len(field):
-                        return None
+                    if len(field) < 1:
+                        return 0
                     length += len(field)
                 return length
                 
