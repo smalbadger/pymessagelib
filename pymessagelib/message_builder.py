@@ -73,8 +73,6 @@ class MessageBuilder:
                 """Return the length of the Message class. If any fields have non-positive lengths, return 0"""
                 length = 0
                 for field in all_fields.values():
-                    if len(field) < 1:
-                        return 0
                     length += len(field)
                 return length
                 
