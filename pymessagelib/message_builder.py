@@ -6,6 +6,7 @@ Created on Feb 18, 2021
 @author: smalb
 """
 
+from abc import ABCMeta
 from typing import Dict
 from message import Message
 from field import Field
@@ -65,7 +66,7 @@ class MessageBuilder:
                 raise InvalidFieldException(f"cls_name: {name} must be a Field object.")
             
         # Define the metaclass to use
-        class MessageType(type):
+        class MessageType(ABCMeta):
             
             def __len__(self):
                 length = 0
