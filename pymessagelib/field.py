@@ -45,9 +45,9 @@ class Field(ABC):
     def __init__(self, length=1, value=None, fmt=None, context=None):
         """Constructs a Field object"""
 
-        if not length > 1 and type(self).__name__.endswith("s"):
+        if length <= 1 and type(self).__name__.endswith("s"):
             raise InvalidFormatException(f"Length for plural field type {type(self).__name__} must be greater than 1.")
-        elif length > 1 and not type(self).__name__.endswith("s"):
+        elif length != 1 and not type(self).__name__.endswith("s"):
             raise InvalidFormatException(f"Length for singular field type {type(self).__name__} must be 1.")
 
         self._context = context
