@@ -46,10 +46,7 @@ class MessageBuilder:
         Builds a message class when given the name of the message and a dictionary mapping field names
         to field objects.
         """
-
-        # Create an empty class with the appropriate name that inherits from Message.
-        msg_cls = type(cls_name, (Message,), {})
-
+        
         # Categorize the fields to generate methods appropriately
         all_fields = {}
         writable_fields = {}
@@ -66,6 +63,20 @@ class MessageBuilder:
                     auto_updated_fields[name] = item
             else:
                 raise InvalidFieldException(f"cls_name: {name} must be a Field object.")
+            
+        # Define the metaclass to use
+        class MessageType(type):
+            
+            def __len__(self):
+                length = 0
+                for field in all_fields.values():
+                    if not len(field):
+                        return None
+                    length += len(field)
+                return length
+                
+        # Create an empty class with the appropriate name that inherits from Message.
+        msg_cls = MessageType(cls_name, (Message,), {})
 
         def __init__(self, **kwargs):
             """Constructor for generated Message subclasses."""
