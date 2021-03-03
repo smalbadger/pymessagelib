@@ -6,6 +6,7 @@ Created on Feb 18, 2021
 @author: smalb
 """
 
+from abc import ABCMeta
 from typing import Dict
 from message import Message
 from field import Field
@@ -46,10 +47,7 @@ class MessageBuilder:
         Builds a message class when given the name of the message and a dictionary mapping field names
         to field objects.
         """
-
-        # Create an empty class with the appropriate name that inherits from Message.
-        msg_cls = type(cls_name, (Message,), {})
-
+        
         # Categorize the fields to generate methods appropriately
         all_fields = {}
         writable_fields = {}
@@ -66,6 +64,20 @@ class MessageBuilder:
                     auto_updated_fields[name] = item
             else:
                 raise InvalidFieldException(f"cls_name: {name} must be a Field object.")
+            
+        # Define the metaclass to use
+        class MessageType(ABCMeta):
+            """This is a dynamically-created Metaclass that will be the type of all Message subclasses"""
+            
+            def __len__(self):
+                """Return the length of the Message class. If any fields have non-positive lengths, return 0"""
+                length = 0
+                for field in all_fields.values():
+                    length += len(field)
+                return length
+                
+        # Create an empty class with the appropriate name that inherits from Message.
+        msg_cls = MessageType(cls_name, (Message,), {})
 
         def __init__(self, **kwargs):
             """Constructor for generated Message subclasses."""
