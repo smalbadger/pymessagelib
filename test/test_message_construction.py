@@ -12,3 +12,7 @@ class TestMessageConstruction(unittest.TestCase):
         self.assertTrue(outputs.reset2 == "b1")
         self.assertTrue(outputs.cautions == "x80")
         self.assertTrue(outputs.unused == "x0")
+        self.assertEqual(outputs.reset1.name, "reset1")
+        self.assertEqual(outputs.reset2.name, "reset2")
+        self.assertEqual(outputs.cautions.name, "cautions")
+        self.assertEqual(outputs.unused.name, "unused")

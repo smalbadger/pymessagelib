@@ -50,6 +50,7 @@ class Field(ABC):
         elif length != 1 and not type(self).__name__.endswith("s"):
             raise InvalidFormatException(f"Length for singular field type {type(self).__name__} must be 1.")
 
+        self._name = ""
         self._context = context
         self._unit_length = length
         self._bit_length = length * type(self).bits_per_unit
@@ -115,6 +116,11 @@ class Field(ABC):
     def length_as_format(self, fmt):
         """Return the character length if rendered in the specific format."""
         return math.ceil(self._bit_length / math.log2(fmt.value))
+
+    @property
+    def name(self):
+        """Returns the name of the field. If no name is stored, an empty string will be returned."""
+        return self._name
 
     @property
     def value_updater(self):
