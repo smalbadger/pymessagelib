@@ -218,7 +218,7 @@ class Message(ABC):
         """
         my_table = self.render_table().split("\n")
         other_table = other_message.render_table().split("\n")
-
+        
         comps = {}
         counter = 3
         for field1, field2 in zip(self._fields.values(), other_message._fields.values()):
@@ -226,16 +226,17 @@ class Message(ABC):
             counter += 2
 
         counter = 0
+        comparison_str = ""
         for my_line, other_line in zip(my_table, other_table):
             if counter in comps:
                 comp = "==" if comps[counter] is True else "!="
             else:
                 comp = "  "
 
-            print(f"{my_line}  {comp}  {other_line}")
+            comparison_str += f"{my_line}  {comp}  {other_line}\n"
             counter += 1
 
-        return False in comps
+        return False in comps, comparison_str
 
     def __len__(self):
         """Returns the total number of bits in the message."""
