@@ -67,8 +67,10 @@ class MessageBuilder:
             
         # Define the metaclass to use
         class MessageType(ABCMeta):
+            """This is a dynamically-created Metaclass that will be the type of all Message subclasses"""
             
             def __len__(self):
+                """Return the length of the Message class. If any fields have non-positive lengths, return 0"""
                 length = 0
                 for field in all_fields.values():
                     if len(field) < 1:
