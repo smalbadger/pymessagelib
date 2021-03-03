@@ -12,33 +12,44 @@ from enum import Enum
 import math
 import inspect
 
-from _exceptions import InvalidDataFormatException, ContextDataMismatchException, InvalidFieldDataException
+from _exceptions import (
+    InvalidDataFormatException,
+    ContextDataMismatchException,
+    InvalidFieldDataException,
+    InvalidFormatException,
+)
 
 
 class Field(ABC):
     """
     Messages are made up of Fields. The field class is essentially a container to store binary values in.
-    
+
     There are 3 types of fields:
         - Constant: The value of the field will never change
         - Writable: The value of the field can be changed by simply setting it.
         - Auto-Update: The value of the field updates automatically. It can depend on other fields.
-        
-    The value of each field is stored internally as binary, but can be rendered in binary, octal, hexadecimal, 
+
+    The value of each field is stored internally as binary, but can be rendered in binary, octal, hexadecimal,
     or decimal.
-    
+
     """
-    
-    
+
     class Format(Enum):
         """Defines the number of states in a character for each format."""
+
         Bin = 2
         Oct = 8
         Dec = 10
         Hex = 16
 
-    def __init__(self, length, value=None, fmt=None, context=None):
+    def __init__(self, length=1, value=None, fmt=None, context=None):
         """Constructs a Field object"""
+
+        if length <= 1 and type(self).__name__.endswith("s"):
+            raise InvalidFormatException(f"Length for plural field type {type(self).__name__} must be greater than 1.")
+        elif length != 1 and not type(self).__name__.endswith("s"):
+            raise InvalidFormatException(f"Length for singular field type {type(self).__name__} must be 1.")
+
         self._context = context
         self._unit_length = length
         self._bit_length = length * type(self).bits_per_unit
@@ -136,7 +147,7 @@ class Field(ABC):
     def value(self, value):
         """
         Sets the value of the field. If it's a nested field, a Message can be the value.
-        
+
         :raises: InvalidFieldDataException if the value is too big to fit in the field.
         """
         from message import Message
@@ -200,56 +211,56 @@ class Field(ABC):
         """Return the number of bits in the field"""
         return self._bit_length
 
-#     def __lt__(self, other):
-#         pass
-# 
-#     def __bytes__(self):
-#         pass
-# 
-#     def __call__(self):
-#         pass
-# 
-#     def __contains__(self):
-#         pass
-# 
-#     def __getitem__(self):
-#         pass
-# 
-#     def __setitem__(self, value):
-#         pass
-# 
-#     def __add__(self, other):
-#         pass
-# 
-#     def __sub__(self, other):
-#         pass
-# 
-#     def __lshift__(self, amount):
-#         pass
-# 
-#     def __rshift__(self, amount):
-#         pass
-# 
-#     def __and__(self, other):
-#         pass
-# 
-#     def __rand__(self, other):
-#         pass
-# 
-#     def __xor__(self, other):
-#         pass
-# 
-#     def __rxor__(self, other):
-#         pass
-# 
-#     def __or__(self, other):
-#         pass
-# 
-#     def __ror__(self, other):
-#         pass
-# 
-#     def __int__(self):
-#         pass
+    #     def __lt__(self, other):
+    #         pass
+    #
+    #     def __bytes__(self):
+    #         pass
+    #
+    #     def __call__(self):
+    #         pass
+    #
+    #     def __contains__(self):
+    #         pass
+    #
+    #     def __getitem__(self):
+    #         pass
+    #
+    #     def __setitem__(self, value):
+    #         pass
+    #
+    #     def __add__(self, other):
+    #         pass
+    #
+    #     def __sub__(self, other):
+    #         pass
+    #
+    #     def __lshift__(self, amount):
+    #         pass
+    #
+    #     def __rshift__(self, amount):
+    #         pass
+    #
+    #     def __and__(self, other):
+    #         pass
+    #
+    #     def __rand__(self, other):
+    #         pass
+    #
+    #     def __xor__(self, other):
+    #         pass
+    #
+    #     def __rxor__(self, other):
+    #         pass
+    #
+    #     def __or__(self, other):
+    #         pass
+    #
+    #     def __ror__(self, other):
+    #         pass
+    #
+    #     def __int__(self):
+    #         pass
 
     def __invert__(self):
         """Return a new field with a bit-inverted value"""
@@ -299,39 +310,73 @@ class Field(ABC):
         raise InvalidDataFormatException("Value is already longer than padding length")
 
 
+class Bit(Field):
+    """1 Bit = 1 Bit"""
+
+    bits_per_unit = 1
+
+
 class Bits(Field):
     """1 Bit = 1 Bit"""
+
     bits_per_unit = 1
+
+
+class Nibble(Field):
+    """1 Nibble = 4 Bits"""
+
+    bits_per_unit = 4
 
 
 class Nibbles(Field):
     """1 Nibble = 4 Bits"""
+
     bits_per_unit = 4
+
+
+class Byte(Field):
+    """1 Byte = 8 Bits"""
+
+    bits_per_unit = 8
 
 
 class Bytes(Field):
     """1 Byte = 8 Bits"""
+
     bits_per_unit = 8
+
+
+class Word(Field):
+    """1 Word = 16 Bits"""
+
+    bits_per_unit = 16
 
 
 class Words(Field):
     """1 Word = 16 Bits"""
+
     bits_per_unit = 16
+
+
+class DWord(Field):
+    """1 D-Word = 32 Bits"""
+
+    bits_per_unit = 32
 
 
 class DWords(Field):
     """1 D-Word = 32 Bits"""
+
     bits_per_unit = 32
+
+
+class QWord(Field):
+    """1 Q-Word = 64 Bits"""
+
+    bits_per_unit = 64
 
 
 class QWords(Field):
     """1 Q-Word = 64 Bits"""
+
     bits_per_unit = 64
-
-
-Bit = Bits
-Nibble = Nibbles
-Byte = Bytes
-Word = Words
-DWord = DWords
-QWord = QWords

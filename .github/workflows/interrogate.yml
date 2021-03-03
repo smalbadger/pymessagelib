@@ -12,6 +12,8 @@ jobs:
       uses: rlespinasse/github-slug-action@v3.x
     
     - uses: actions/checkout@v2
+      with:
+         ref: ${{ env.GITHUB_REF_SLUG }}
 
     - name: Set up Python 3.8
       uses: actions/setup-python@v2

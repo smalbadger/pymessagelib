@@ -17,6 +17,10 @@ class MissingFieldDataException(Exception):
     pass
 
 
+class InvalidFormatException(Exception):
+    pass
+
+
 class InvalidDataFormatException(Exception):
     pass
 

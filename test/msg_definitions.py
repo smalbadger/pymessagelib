@@ -25,7 +25,7 @@ msg_fmts = {
     "WRITE_REGISTER_RESPONSE": {
         "mid": Nibbles(4, value="x1014"),
         "length": Bytes(2, value="x0001"),
-        "success": Bytes(1),
+        "success": Byte(),
     },
     "READ_REGISTER_REQUEST": {
         "mid": Nibbles(4, value="x0015"),
@@ -41,13 +41,13 @@ msg_fmts = {
 }
 
 register_defs = {
-    "OUTPUTS": {"reset1": Bit(1), "reset2": Bit(1), "cautions": Byte(1), "unused": Bits(22, value="x0000000")},
+    "OUTPUTS": {"reset1": Bit(), "reset2": Bit(), "cautions": Byte(), "unused": Bits(22, value="x0000000")},
     "INPUTS": {
-        "service_req": Bit(1),
-        "voltage_ready": Bit(1),
+        "service_req": Bit(),
+        "voltage_ready": Bit(),
         "exit_code": Bytes(2),
         "last_command_mid": Bits(2),
-        "unused": Byte(1, value="x0"),
+        "unused": Byte(value="x0"),
     },
 }
 
