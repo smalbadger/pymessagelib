@@ -95,11 +95,13 @@ class Field(ABC):
         return Field.render_value(value=value, fmt=fmt, pad_to_length=pad_to_length)
 
     @staticmethod
-    def render_value(*, value, fmt, pad_to_length):
+    def render_value(*, value, fmt, pad_to_length, check_length=False):
         """
         Render any value in a different format
         """
         prefix, numeric_value = value[0], value[1:]
+        if check_length and len(numeric_value) > pad_to_length:
+            raise InvalidDataFormatException(f"{value} is longer than specified length of {pad_to_length}.")
         int_val = int(numeric_value, Field.bases()[prefix].value)
         fmt_str = f"0{pad_to_length}{Field.inverted_bases()[fmt]}"
         return Field.inverted_bases()[fmt] + format(int_val, fmt_str)

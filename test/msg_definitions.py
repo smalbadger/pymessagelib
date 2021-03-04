@@ -47,7 +47,7 @@ register_defs = {
         "voltage_ready": Bit(),
         "exit_code": Bytes(2),
         "last_command_mid": Bits(2),
-        "unused": Byte(value="x0"),
+        "unused": Nibbles(3, value="x0"),
     },
 }
 

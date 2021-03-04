@@ -20,7 +20,6 @@ class MissingFieldDataException(Exception):
 class InvalidFormatException(Exception):
     pass
 
-
 class InvalidDataFormatException(Exception):
     pass
 
