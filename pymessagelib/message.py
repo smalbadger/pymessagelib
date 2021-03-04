@@ -17,7 +17,6 @@ from _exceptions import (
     InvalidDataFormatException,
     MissingFieldDataException,
     InvalidFieldDataException,
-    CircularDependencyException,
 )
 
 
@@ -241,6 +240,16 @@ class Message(ABC):
     def __len__(self):
         """Returns the total number of bits in the message."""
         return type(self).bit_length
+    
+    def __eq__(self, other):
+        """Return True if all fields in the message are equal and false otherwise."""
+        if type(self) != type(other):
+            return False
+        for name in self._fields:
+            if self._fields[name] != other._fields[name]:
+                return False
+        return True
+    
 
     @classmethod
     def from_data(cls, data):
@@ -253,14 +262,23 @@ class Message(ABC):
         """
 
         # 1. Convert the data to binary
-        binary_data = Field.render_value(value=data, fmt=Field.Format.Bin, pad_to_length=cls.bit_length)[1:]
+        binary_data = Field.render_value(value=data, fmt=Field.Format.Bin, pad_to_length=cls.bit_length, check_length=True)[1:]
 
         # 2. chunk into fields
         writable_field_data = {}
         for fieldname, field in cls.format.items():
+            field_data = f"b{binary_data[:len(field)]}"
             if field.is_writable:
-                writable_field_data[fieldname] = f"b{binary_data[:len(field)]}"
+                writable_field_data[fieldname] = field_data
+            elif field.is_auto_updated:
+                pass
+            else:
+                if field.value != field_data:
+                    raise InvalidDataFormatException(f"The data '{field_data}' does not match with constant field {fieldname}.")
             binary_data = binary_data[len(field) :]
+            
+        if binary_data:
+            raise InvalidDataFormatException(f"the data '{data}' doesn't fit the format for '{cls.__name__}'")
 
         # 3. Construct a new message providing data only for writable fields.
         try:

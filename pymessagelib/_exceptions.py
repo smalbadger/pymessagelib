@@ -20,10 +20,11 @@ class MissingFieldDataException(Exception):
 class InvalidFormatException(Exception):
     pass
 
-
 class InvalidDataFormatException(Exception):
     pass
 
+class InvalidMessageDefinitionException(Exception):
+    pass
 
 class ContextDataMismatchException(Exception):
     pass

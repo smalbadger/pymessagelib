@@ -14,10 +14,10 @@ msg_fmts = {
         "ptr": Bytes(3),
         "addr": Bits(2),
         "pad": Bits(4, value="b0000"),
-        "crc": Bytes(4, value=lambda ptr, addr, pad: EKMS32Bit(ptr, addr, pad)),
+        "crc": Bytes(4, value=lambda pad:pad),
     },
     "WRITE_REGISTER_REQUEST": {
-        "mid": Nibbles(4, value="x0014"),
+        "mid": Nibbles(4, value="x0016"),
         "length": Bytes(2, value="x0008"),
         "addr": Bytes(4),
         "data": Bytes(4),
@@ -47,7 +47,7 @@ register_defs = {
         "voltage_ready": Bit(),
         "exit_code": Bytes(2),
         "last_command_mid": Bits(2),
-        "unused": Byte(value="x0"),
+        "unused": Nibbles(3, value="x0"),
     },
 }
 
