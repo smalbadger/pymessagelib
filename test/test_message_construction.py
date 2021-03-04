@@ -28,9 +28,9 @@ class TestMessageConstruction(unittest.TestCase):
         wrt_req_2 = builder.WRITE_REGISTER_REQUEST.from_data(data)
         wrt_req_3 = builder.WRITE_REGISTER_REQUEST(addr='x99999999', data='x00000000')
         
-        self.assertTrue(type(wrt_req_1) == builder.WRITE_REGISTER_REQUEST)
-        self.assertTrue(type(wrt_req_2) == builder.WRITE_REGISTER_REQUEST)
-        self.assertTrue(type(wrt_req_3) == builder.WRITE_REGISTER_REQUEST)
+        self.assertTrue(isinstance(wrt_req_1, builder.WRITE_REGISTER_REQUEST))
+        self.assertTrue(isinstance(wrt_req_2, builder.WRITE_REGISTER_REQUEST))
+        self.assertTrue(isinstance(wrt_req_3, builder.WRITE_REGISTER_REQUEST))
         
         self.assertEqual(wrt_req_1, wrt_req_2)
         self.assertEqual(wrt_req_2, wrt_req_3)
