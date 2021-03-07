@@ -18,6 +18,7 @@ from _exceptions import (
     MissingFieldDataException,
     InvalidFieldDataException,
 )
+import math
 
 
 class Message(ABC):
@@ -73,7 +74,13 @@ class Message(ABC):
         # Fields need to be deep copied so the same field objects aren't shared
         # across all message instances of the same type.
         self._fields = deepcopy(fields)  # maps field names to field objects
+        for field in self._fields.values():
+            field._parent_message = self
         self._parent_field = None
+
+    def __repr__(self):
+        """Return a short string representation of the message"""
+        return f"<{type(self).__name__}: {self.render()}>"
 
     @staticmethod
     def _create_setter(name, field):
@@ -121,11 +128,11 @@ class Message(ABC):
     def context(self):
         """
         If this Message object belongs to a nested field, the context of the field is returned.
-        Else, None is returned.
+        Else, the class of the message is returned
         """
         if self._parent_field is not None:
             return self._parent_field.context
-        return None
+        return type(self)
 
     @context.setter
     def context(self, context):
@@ -155,7 +162,7 @@ class Message(ABC):
             try_again = False
             for field in auto_update_fields:
                 field.value = field.value_updater(
-                    *[self._fields[arg].value for arg in inspect.getfullargspec(field.value_updater)[0]]
+                    *[self._fields[arg] for arg in inspect.getfullargspec(field.value_updater)[0]]
                 )
                 if field._value is None:
                     try_again = True
@@ -163,10 +170,17 @@ class Message(ABC):
             if not try_again:
                 break
 
-    def render(self) -> str:
+        # Propagate updates to parents
+        if self._parent_field is not None:
+            if self._parent_field._parent_message is not None:
+                self._parent_field._parent_message.update_fields()
+
+    def render(self, fmt=Field.Format.Hex, pad_to_length=0) -> str:
         """Renders entire field object as a hexadecimal value."""
+
+        pad_to_length = pad_to_length if pad_to_length > 0 else math.ceil(len(self) / math.log2(fmt.value))
         bin_data = f"b{''.join([data.render(fmt=Field.Format.Bin)[1:] for data in self._fields.values()])}"
-        return Field.render_value(value=bin_data, fmt=Field.Format.Hex, pad_to_length=len(self) // 4)
+        return Field.render_value(value=bin_data, fmt=fmt, pad_to_length=pad_to_length)
 
     def render_table(self, formats=(Field.Format.Hex, Field.Format.Bin)) -> str:
         """
@@ -217,7 +231,7 @@ class Message(ABC):
         """
         my_table = self.render_table().split("\n")
         other_table = other_message.render_table().split("\n")
-        
+
         comps = {}
         counter = 3
         for field1, field2 in zip(self._fields.values(), other_message._fields.values()):
@@ -240,16 +254,31 @@ class Message(ABC):
     def __len__(self):
         """Returns the total number of bits in the message."""
         return type(self).bit_length
-    
+
     def __eq__(self, other):
-        """Return True if all fields in the message are equal and false otherwise."""
-        if type(self) != type(other):
+        """
+        Return True if all fields in the message are equal and false otherwise.
+
+        Can also compare to a string value.
+        """
+        if isinstance(other, str):
+            other = Field.render_value(value=other, fmt=Field.Format.Bin, pad_to_length=len(self))
+            return self.render(fmt=Field.Format.Bin, pad_to_length=len(self)) == other
+        elif type(self) != type(other):
             return False
         for name in self._fields:
             if self._fields[name] != other._fields[name]:
                 return False
         return True
     
+    def update(self, data):
+        """
+        Same as the Message.from_data method except a new object is not constructed. 
+        All fields of the message are updated with the new data.
+        """
+        new_msg = type(self).from_data(data)
+        for name, field in new_msg._fields.items():
+            self._fields[name].value = field.render()
 
     @classmethod
     def from_data(cls, data):
@@ -262,7 +291,9 @@ class Message(ABC):
         """
 
         # 1. Convert the data to binary
-        binary_data = Field.render_value(value=data, fmt=Field.Format.Bin, pad_to_length=cls.bit_length, check_length=True)[1:]
+        binary_data = Field.render_value(
+            value=data, fmt=Field.Format.Bin, pad_to_length=cls.bit_length, check_length=True
+        )[1:]
 
         # 2. chunk into fields
         writable_field_data = {}
@@ -274,9 +305,11 @@ class Message(ABC):
                 pass
             else:
                 if field.value != field_data:
-                    raise InvalidDataFormatException(f"The data '{field_data}' does not match with constant field {fieldname}.")
+                    raise InvalidDataFormatException(
+                        f"The data '{field_data}' does not match with constant field {fieldname}."
+                    )
             binary_data = binary_data[len(field) :]
-            
+
         if binary_data:
             raise InvalidDataFormatException(f"the data '{data}' doesn't fit the format for '{cls.__name__}'")
 

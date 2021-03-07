@@ -51,6 +51,7 @@ class Field(ABC):
             raise InvalidFormatException(f"Length for singular field type {type(self).__name__} must be 1.")
 
         self._name = ""
+        self._parent_message = None
         self._context = context
         self._unit_length = length
         self._bit_length = length * type(self).bits_per_unit
@@ -91,7 +92,7 @@ class Field(ABC):
             fmt = self._format
         pad_to_length = pad_to_length if pad_to_length > 0 else math.ceil(self._bit_length / math.log2(fmt.value))
         if isinstance(value, Message):
-            return value.render()
+            return value.render(fmt=fmt, pad_to_length=pad_to_length)
         return Field.render_value(value=value, fmt=fmt, pad_to_length=pad_to_length)
 
     @staticmethod
@@ -148,7 +149,7 @@ class Field(ABC):
     def value(self):
         """Return the value of the field. If this is a nested field, a Message-subclass object will be returned."""
         if self.context:
-            return self.context.from_data(self._value)
+            return self._nested_msg
         return self._value
 
     @value.setter
@@ -169,6 +170,8 @@ class Field(ABC):
             self._value = value
             if is_msg:
                 self.context = context
+            if self.context:
+                self._nested_msg.update(value)
         else:
             raise InvalidFieldDataException(f"{value} is not a valid value for {self}")
 
@@ -185,16 +188,18 @@ class Field(ABC):
         assert Message in inspect.getmro(context) or context is None
 
         if context is None:
-            self._context = context
+            self._context = None
+            self._nested_msg = None
         else:
             try:
-                context.from_data(self._value)
+                msg = context.from_data(self._value)
             except InvalidDataFormatException:
                 raise ContextDataMismatchException(
                     f"The data '{self._value}' is not compatible with context {context.__name__}"
                 )
             else:
                 self._context = context
+                self._nested_msg = msg
 
     def __repr__(self):
         """If the field has a value, render it in its default format. Else, return a summary of empty field"""
@@ -281,7 +286,8 @@ class Field(ABC):
 
     def __bool__(self):
         """Return True if the value of the field is non-zero"""
-        return "1" in self.render(Field.Format.Bin)
+        val_minus_format = self._value[1:]
+        return any((False if char == "0" else True for char in val_minus_format))
 
     ######################################################
     # Static Methods

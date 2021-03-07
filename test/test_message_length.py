@@ -4,12 +4,11 @@ from msg_definitions import msg_fmts, register_defs
 
 
 class TestMessageLength(unittest.TestCase):
-    
     def testMessageClassLength(self):
         builder = MessageBuilder()
         OUTPUTS = builder.build_message_class("OUTPUTS", register_defs["OUTPUTS"])
         self.assertTrue(len(OUTPUTS) == 32)
-        
+
     def testMessageObjectLength(self):
         builder = MessageBuilder()
         OUTPUTS = builder.build_message_class("OUTPUTS", register_defs["OUTPUTS"])
