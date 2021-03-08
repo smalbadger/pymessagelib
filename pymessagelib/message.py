@@ -11,6 +11,7 @@ from abc import ABC
 import inspect
 from typing import Dict
 from copy import deepcopy
+from terminaltables import AsciiTable
 
 from field import Field
 from _exceptions import (
@@ -177,66 +178,71 @@ class Message(ABC):
 
     def render(self, fmt=Field.Format.Hex, pad_to_length=0) -> str:
         """Renders entire field object as a hexadecimal value."""
-
         pad_to_length = pad_to_length if pad_to_length > 0 else math.ceil(len(self) / math.log2(fmt.value))
         bin_data = f"b{''.join([data.render(fmt=Field.Format.Bin)[1:] for data in self._fields.values()])}"
         return Field.render_value(value=bin_data, fmt=fmt, pad_to_length=pad_to_length)
 
-    def render_table(self, formats=(Field.Format.Hex, Field.Format.Bin)) -> str:
+    def get_field_name_mapping(self, expand_nested=False):
+        """TODO: Verify this function works"""
+        fields = {}
+        
+        def recursive_helper(cur_name, cur_field):
+            if not cur_field.context:
+                fields[cur_name] = cur_field
+                return
+            
+            for n, f in cur_field._nested_msg._fields.items():
+                recursive_helper(f'{cur_name}.{n}', f)
+        
+        for name, field in self._fields.items():
+            if expand_nested and field.context:
+                recursive_helper(name, field)
+            else:
+                fields[name] = field
+                
+        return fields
+
+    def render_table(self, formats=(Field.Format.Hex, Field.Format.Bin), expand_nested=False) -> str:
         """
         Renders the Message object as an ASCII table. The first column specifies the name of each field
         and each subsequent column contains each field rendered in a specific format. The formats that
         fields are rendered as is dictated by the value of the `formats` parameter.
         """
-        # Calculate column widths based on max lengths
-        max_field_name_length = len(max(self._fields.keys(), key=len))
-        max_format_lens = []
-        for fmt in formats:
-            max_format_lens.append(len(max([f.render(fmt=fmt) for f in self._fields.values()], key=len)))
+        
+        title = type(self).__name__
+        
+        fields = self.get_field_name_mapping(expand_nested)
+        
+        if not formats:
+            header = [["Field Name", "Value"]]
+            field_values = [[name, field.render()] for name, field in fields.items()]
+            
+        else:
+            header = [["Field Name"] + [fmt.name for fmt in formats]]
+            field_values = []
+            for name, field in fields.items():
+                field_values.append([name] + [field.render(fmt=fmt) for fmt in formats])
 
-        # Build header
-        name_col_fmt = "| {:^" + str(max_field_name_length) + "s} |"
-        hdr = name_col_fmt.format("Field")
-        for fmt, l in zip(formats, max_format_lens):
-            column_fmt = " {:^" + str(l) + "s} |"
-            hdr += column_fmt.format(fmt.name)
+        table_instance = AsciiTable(header + field_values, title)
+        return table_instance.table
 
-        hdr_bars = f"+={'='*max_field_name_length}=+"
-        for l in max_format_lens:
-            hdr_bars += f"={'='*l}=+"
-        row_separator = hdr_bars.replace("=", "-")
-
-        ascii_table = f"{hdr_bars}\n{hdr}\n{hdr_bars}"
-
-        # Build field rows
-        for fieldname, field in self._fields.items():
-
-            name_col_fmt = "| {:<" + str(max_field_name_length) + "s} |"
-            row = name_col_fmt.format(fieldname)
-
-            for fmt, l in zip(formats, max_format_lens):
-                column_fmt = " {:<" + str(l) + "s} |"
-                row += column_fmt.format(field.render(fmt=fmt))
-
-            ascii_table += f"\n{row}\n{row_separator}"
-
-        return ascii_table
-
-    def compare_tables(self, other_message):
+    def compare_tables(self, other_message, formats=None, expand_nested=True):
         """
         Constructs an ASCII representation of the message comparison. The tables for each
         message are displayed side-by-side. Fields that differ are denoted by `!=` between
         the tables in the corresponding row and fields that are equivalent are denoted
         by `==` in the same manner.
         """
-        my_table = self.render_table().split("\n")
-        other_table = other_message.render_table().split("\n")
+        my_table = self.render_table(formats=formats, expand_nested=expand_nested).split("\n")
+        other_table = other_message.render_table(formats=formats, expand_nested=expand_nested).split("\n")
 
         comps = {}
         counter = 3
-        for field1, field2 in zip(self._fields.values(), other_message._fields.values()):
+        self_fields = self.get_field_name_mapping(expand_nested).values()
+        other_fields = other_message.get_field_name_mapping(expand_nested).values()
+        for field1, field2 in zip(self_fields, other_fields):
             comps[counter] = field1.value == field2.value
-            counter += 2
+            counter += 1
 
         counter = 0
         comparison_str = ""

@@ -12,41 +12,41 @@ class TestNestedMessages(unittest.TestCase):
         self.builder.load_definitions(register_defs)
         self.builder.load_definitions(caution_codes)
 
-        def testMultipleLevelContexts(self):
-            WRITE_REGISTER_REQUEST = self.builder.WRITE_REGISTER_REQUEST
-            OUTPUTS = self.builder.OUTPUTS
-            CAUTION_CODES = self.builder.CAUTION_CODES
+    def testMultipleLevelContexts(self):
+        WRITE_REGISTER_REQUEST = self.builder.WRITE_REGISTER_REQUEST
+        OUTPUTS = self.builder.OUTPUTS
+        CAUTION_CODES = self.builder.CAUTION_CODES
 
-            msg = WRITE_REGISTER_REQUEST(addr="x60000001", data="x80000000")
-            msg.data.context = OUTPUTS
-            msg.data.cautions.context = CAUTION_CODES
+        msg = WRITE_REGISTER_REQUEST(addr="x60000001", data="x80000000")
+        msg.data.context = OUTPUTS
+        msg.data.cautions.context = CAUTION_CODES
 
-            self.assertEqual(msg.context, WRITE_REGISTER_REQUEST)
-            self.assertEqual(type(msg), WRITE_REGISTER_REQUEST)
-            self.assertEqual(msg.data.context, OUTPUTS)
-            self.assertEqual(type(msg.data), OUTPUTS)
-            self.assertEqual(msg.data.cautions.context, CAUTION_CODES)
-            self.assertEqual(type(msg.data.cautions), CAUTION_CODES)
+        self.assertEqual(msg.context, WRITE_REGISTER_REQUEST)
+        self.assertEqual(type(msg), WRITE_REGISTER_REQUEST)
+        self.assertEqual(msg.data.context, OUTPUTS)
+        self.assertEqual(type(msg.data), OUTPUTS)
+        self.assertEqual(msg.data.cautions.context, CAUTION_CODES)
+        self.assertEqual(type(msg.data.cautions), CAUTION_CODES)
 
-        def testMultipleLevelValues(self):
-            WRITE_REGISTER_REQUEST = self.builder.WRITE_REGISTER_REQUEST
-            OUTPUTS = self.builder.OUTPUTS
-            CAUTION_CODES = self.builder.CAUTION_CODES
+    def testMultipleLevelValues(self):
+        WRITE_REGISTER_REQUEST = self.builder.WRITE_REGISTER_REQUEST
+        OUTPUTS = self.builder.OUTPUTS
+        CAUTION_CODES = self.builder.CAUTION_CODES
 
-            msg = WRITE_REGISTER_REQUEST(addr="x60000001", data="x80000000")
-            msg.data.context = OUTPUTS
-            msg.data.cautions.context = CAUTION_CODES
+        msg = WRITE_REGISTER_REQUEST(addr="x60000001", data="x80000000")
+        msg.data.context = OUTPUTS
+        msg.data.cautions.context = CAUTION_CODES
 
-            self.assertEqual(msg.mid, "x0016")
-            self.assertEqual(msg.length, "x0008")
-            self.assertEqual(msg.addr, "x60000001")
-            self.assertEqual(msg.data, "x80000000")
-            self.assertEqual(msg.data.reset1, "b1")
-            self.assertEqual(msg.data.reset2, "b0")
-            self.assertEqual(msg.data.cautions, "x00")
-            self.assertEqual(msg.data.cautions.addr, "b0000")
-            self.assertEqual(msg.data.cautions.access, "b0000")
-            self.assertEqual(msg.data.unused, "x0000000")
+        self.assertEqual(msg.mid, "x0016")
+        self.assertEqual(msg.length, "x0008")
+        self.assertEqual(msg.addr, "x60000001")
+        self.assertEqual(msg.data, "x80000000")
+        self.assertEqual(msg.data.reset1, "b1")
+        self.assertEqual(msg.data.reset2, "b0")
+        self.assertEqual(msg.data.cautions, "x00")
+        self.assertEqual(msg.data.cautions.addr, "b0000")
+        self.assertEqual(msg.data.cautions.access, "b0000")
+        self.assertEqual(msg.data.unused, "x0000000")
 
     def testMultipleLevelValueUpdates(self):
         WRITE_REGISTER_REQUEST = self.builder.WRITE_REGISTER_REQUEST_V2
@@ -73,3 +73,4 @@ class TestNestedMessages(unittest.TestCase):
         self.assertEqual(msg.or_field.byte_2, "xC0")
         self.assertEqual(msg.or_field.byte_3, "x00")
         self.assertEqual(msg.or_field.byte_4, "x01")
+        
