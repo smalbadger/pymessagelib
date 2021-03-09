@@ -33,8 +33,8 @@ class TestFieldTypes(unittest.TestCase):
             builder = MessageBuilder(circular_dep)
 
     def testNestedFields(self):
-        builder = MessageBuilder(register_defs)
         WRITE_REGISTER_REQUEST = self.builder.WRITE_REGISTER_REQUEST
+        builder = MessageBuilder(register_defs)
         OUTPUTS = builder.build_message_class("OUTPUTS", register_defs["OUTPUTS"])
         INPUTS = builder.build_message_class("INPUTS", register_defs["INPUTS"])
 

@@ -7,6 +7,7 @@ name = "pypi"
 black = "*"
 numpy = "*"
 coverage = "*"
+terminaltables = "*"
 
 [dev-packages]
 

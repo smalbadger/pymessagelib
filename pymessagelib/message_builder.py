@@ -39,10 +39,10 @@ class MessageBuilder:
         """Constructs a MessageBuilder class and loads the provided definitions."""
         self.message_classes = []
         self.load_definitions(definitions)
-        
+
     def load_definitions(self, definitions: Dict):
         """Loads the provided definitions into this MessageBuilder object."""
-        
+
         for name, definition in definitions.items():
             cls = self.build_message_class(name, definition)
             self.__dict__[name] = cls
@@ -53,7 +53,7 @@ class MessageBuilder:
         Builds a message class when given the name of the message and a dictionary mapping field names
         to field objects.
         """
-        
+
         # Categorize the fields to generate methods appropriately
         all_fields = {}
         writable_fields = {}
@@ -70,18 +70,18 @@ class MessageBuilder:
                     auto_updated_fields[name] = item
             else:
                 raise InvalidFieldException(f"cls_name: {name} must be a Field object.")
-            
+
         # Define the metaclass to use
         class MessageType(ABCMeta):
             """This is a dynamically-created Metaclass that will be the type of all Message subclasses"""
-            
+
             def __len__(self):
                 """Return the length of the Message class. If any fields have non-positive lengths, return 0"""
                 length = 0
                 for field in all_fields.values():
                     length += len(field)
                 return length
-                
+
         # Create an empty class with the appropriate name that inherits from Message.
         msg_cls = MessageType(cls_name, (Message,), {})
 
@@ -154,12 +154,16 @@ class MessageBuilder:
             else:
                 matches.append(msg_cls)
                 message = msg
-            
+
         if len(matches) == 0:
             msg_list = "\n".join([f"\t- {msg_cls.__name__}" for msg_cls in self.message_classes])
-            raise InvalidDataFormatException(f"Data '{data}' could not be resolved to any of the following message types:\n{msg_list}")
+            raise InvalidDataFormatException(
+                f"Data '{data}' could not be resolved to any of the following message types:\n{msg_list}"
+            )
         elif len(matches) == 1:
             return message
         else:
             msg_list = "\n".join([f"\t- {msg_cls.__name__}" for msg_cls in matches])
-            raise InvalidMessageDefinitionException(f"Detected multiple message definitions that match the data '{data}':\n{msg_list}")
+            raise InvalidMessageDefinitionException(
+                f"Detected multiple message definitions that match the data '{data}':\n{msg_list}"
+            )
