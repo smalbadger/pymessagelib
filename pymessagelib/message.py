@@ -141,9 +141,6 @@ class Message(ABC):
         """
         If this Message object belongs to a nested field, set the context of the field.
         Else, raise an exception.
-
-        #TODO: Determine which exception to raise when not a nested field
-        #TODO: Determine which exception to raise when context is not derived from the MessageClass.
         """
         assert self._parent_field is not None
         self._parent_field.context = context
@@ -160,17 +157,13 @@ class Message(ABC):
         for field in auto_update_fields:
             field._value = None  # erase old values
 
+        # NOTE: This is inefficient because auto-update fields can depend on each other.
+        #       This could be improved by forming an update order from the dependency graph.
         for i in range(len(auto_update_fields)):
-            try_again = False
             for field in auto_update_fields:
                 field.value = field.value_updater(
                     *[self._fields[arg] for arg in inspect.getfullargspec(field.value_updater)[0]]
                 )
-                if field._value is None:
-                    try_again = True
-
-            if not try_again:
-                break
 
         # Propagate updates to parents
         if self._parent_field is not None:
@@ -350,11 +343,5 @@ class Message(ABC):
                     )
             binary_data = binary_data[len(field) :]
 
-        if binary_data:
-            raise InvalidDataFormatException(f"the data '{data}' doesn't fit the format for '{cls.__name__}'")
-
         # 3. Construct a new message providing data only for writable fields.
-        try:
-            return cls(**writable_field_data)
-        except (MissingFieldDataException, InvalidFieldDataException) as e:
-            raise InvalidDataFormatException(f"the data '{data}' doesn't fit the format for '{cls.__name__}'")
+        return cls(**writable_field_data)
