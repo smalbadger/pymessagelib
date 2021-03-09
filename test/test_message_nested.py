@@ -73,3 +73,24 @@ class TestNestedMessages(unittest.TestCase):
         self.assertEqual(msg.or_field.byte_2, "xC0")
         self.assertEqual(msg.or_field.byte_3, "x00")
         self.assertEqual(msg.or_field.byte_4, "x01")
+
+    def testSetFieldAsMessage(self):
+        WRITE_REGISTER_REQUEST = self.builder.WRITE_REGISTER_REQUEST_V2
+
+        msg = WRITE_REGISTER_REQUEST(addr="x60000001", data="x80000000")
+        self.assertEqual(msg.data, "x80000000")
+        msg.data = self.builder.OUTPUTS.from_data("x8C000000")
+        self.assertEqual(msg.data.reset1, "b1")
+        self.assertEqual(msg.data.reset2, "b0")
+        self.assertEqual(msg.data.cautions, "x30")
+        self.assertEqual(msg.data.unused, "x00000")
+        self.assertEqual(msg.data, "x8C000000")
+
+    def testSetContextAsNone(self):
+        WRITE_REGISTER_REQUEST = self.builder.WRITE_REGISTER_REQUEST_V2
+
+        msg = WRITE_REGISTER_REQUEST(addr="x60000001", data="x80000000")
+        msg.data.context = self.builder.OUTPUTS
+        self.assertTrue("data.reset1" in msg.get_field_name_mapping(expand_nested=True))
+        msg.data.context = None
+        self.assertTrue("data.reset1" not in msg.get_field_name_mapping(expand_nested=True))

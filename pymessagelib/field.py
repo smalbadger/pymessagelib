@@ -186,7 +186,7 @@ class Field(ABC):
         """Sets the context of the field."""
         from message import Message
 
-        assert Message in inspect.getmro(context) or context is None
+        assert context is None or Message in inspect.getmro(context)
 
         if context is None:
             self._context = None
