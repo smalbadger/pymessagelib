@@ -45,7 +45,7 @@ class TestMessageTables(unittest.TestCase):
             | data.unused          | x000000   | d0000000    | o00000000    | b0000000000000000000000           |
             +----------------------+-----------+-------------+--------------+-----------------------------------+
         """))
-        
+         
     def testCollapsedTableRendering(self):
         not_nested_default_fmt = self.msg.render_table(formats=None, expand_nested=False)
         self.assertEqual(remove_whitespace(not_nested_default_fmt), remove_whitespace("""
@@ -58,7 +58,7 @@ class TestMessageTables(unittest.TestCase):
             | data       | x80000000 |
             +------------+-----------+
         """))
-        
+         
     def testCollapsedTableComparisonEqual(self):
         comp = self.msg.compare_tables(self.msg, expand_nested=False)[1]
         self.assertEqual(remove_whitespace(comp), remove_whitespace("""
@@ -71,7 +71,7 @@ class TestMessageTables(unittest.TestCase):
             | data       | x80000000 |  ==  | data       | x80000000 |
             +------------+-----------+      +------------+-----------+
         """))
-        
+         
     def testCollapsedTableComparisonNotEqual(self):
         msg2 = copy.deepcopy(self.msg)
         msg2.data = 'x83000000'
@@ -86,7 +86,7 @@ class TestMessageTables(unittest.TestCase):
             | data       | x80000000 |  !=  | data       | x83000000 |
             +------------+-----------+      +------------+-----------+
         """))
-        
+         
     def testExpandedTableComparisonEqual(self):
         comp = self.msg.compare_tables(self.msg, formats=None, expand_nested=True)[1]
         self.assertEqual(remove_whitespace(comp), remove_whitespace("""

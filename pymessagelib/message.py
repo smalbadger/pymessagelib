@@ -241,18 +241,18 @@ class Message(ABC):
         self_fields = self.get_field_name_mapping(expand_nested).values()
         other_fields = other_message.get_field_name_mapping(expand_nested).values()
         for field1, field2 in zip(self_fields, other_fields):
-            comps[counter] = field1.value == field2.value
+            comps[counter] = field1 == field2
             counter += 1
 
         counter = 0
         comparison_str = ""
-        for my_line, other_line in zip(my_table, other_table):
-            if counter in comps:
-                comp = "==" if comps[counter] is True else "!="
-            else:
-                comp = "  "
-
-            comparison_str += f"{my_line}  {comp}  {other_line}\n"
+        for my_line, other_line, comp in zip(my_table, other_table, [None]*3+list(comps.values())+[None]):
+            comp_table = {
+                None:  "  ",
+                True:  "==",
+                False: "!=",
+            }
+            comparison_str += f"{my_line}  {comp_table[comp]}  {other_line}\n"
             counter += 1
 
         return False in comps, comparison_str
