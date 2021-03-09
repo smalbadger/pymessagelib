@@ -2,7 +2,7 @@ import unittest
 from field import Field
 from message_builder import MessageBuilder
 from msg_definitions import msg_fmts, register_defs, caution_codes, circular_dep
-from _exceptions import InvalidFieldDataException, CircularDependencyException
+from _exceptions import InvalidFieldDataException, CircularDependencyException, ContextDataMismatchException
 
 
 class TestNestedMessages(unittest.TestCase):
@@ -94,3 +94,10 @@ class TestNestedMessages(unittest.TestCase):
         self.assertTrue("data.reset1" in msg.get_field_name_mapping(expand_nested=True))
         msg.data.context = None
         self.assertTrue("data.reset1" not in msg.get_field_name_mapping(expand_nested=True))
+
+    def testSetIncompatibleContext(self):
+        WRITE_REGISTER_REQUEST = self.builder.WRITE_REGISTER_REQUEST_V2
+
+        msg = WRITE_REGISTER_REQUEST(addr="x60000001", data="x80000001")
+        with self.assertRaises(ContextDataMismatchException):
+            msg.data.context = self.builder.OUTPUTS
