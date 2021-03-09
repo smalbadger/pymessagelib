@@ -58,6 +58,11 @@ msg_fmts = {
         "length": Bytes(2, value="x0004"),
         "addr": Bytes(4),
     },
+    "READ_REGISTER_REQUEST_V2": {
+        "mid": Nibbles(4, value="x0015"),
+        "length": Bytes(2, value="x0004"),
+        "addr": Bytes(4),
+    },
     "READ_REGISTER_RESPONSE": {
         "mid": Nibbles(4, value="x0014", fmt=Field.Format.Hex),
         "length": Bytes(2, value="x0008"),
@@ -93,6 +98,17 @@ caution_codes = {
 circular_dep = {
     "CIRCULAR_DEP": {
         "id": Nibbles(4, value="x0015"),
+        "len": Nibbles(2, value=lambda crc: crc),
+        "ptr": Bytes(3),
+        "addr": Bits(2),
+        "pad": Bits(4, value="b0000"),
+        "crc": Nibbles(2, value=lambda len: len),
+    },
+}
+
+invalid_def = {
+    "INVALID_DEF": {
+        "id": "x0015",
         "len": Nibbles(2, value=lambda crc: crc),
         "ptr": Bytes(3),
         "addr": Bits(2),

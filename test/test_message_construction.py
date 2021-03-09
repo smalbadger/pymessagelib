@@ -1,7 +1,12 @@
 import unittest
 from message_builder import MessageBuilder
-from msg_definitions import msg_fmts, register_defs
-from _exceptions import InvalidDataFormatException
+from msg_definitions import msg_fmts, register_defs, invalid_def
+from _exceptions import (
+    InvalidDataFormatException,
+    InvalidFieldException,
+    MissingFieldDataException,
+    InvalidFieldDataException,
+)
 
 
 class TestMessageConstruction(unittest.TestCase):
@@ -14,11 +19,35 @@ class TestMessageConstruction(unittest.TestCase):
         self.assertTrue(outputs.cautions == "x80")
         self.assertTrue(outputs.unused == "x0")
 
-    def testConstructionFromData_InvalidData(self):
+    def testConstructionFromData_Invalid(self):
         builder = MessageBuilder()
         OUTPUTS = builder.build_message_class("OUTPUTS", register_defs["OUTPUTS"])
         with self.assertRaises(InvalidDataFormatException):
             OUTPUTS.from_data("b11100000000000000000000000000000111")
+
+    def testConstructionFromDefinition_MissingArg(self):
+        builder = MessageBuilder()
+        OUTPUTS = builder.build_message_class("OUTPUTS", register_defs["OUTPUTS"])
+        with self.assertRaises(MissingFieldDataException):
+            OUTPUTS(reset1="b1")
+
+    def testConstructionFromDefinition_InvalidValue(self):
+        builder = MessageBuilder()
+        OUTPUTS = builder.build_message_class("OUTPUTS", register_defs["OUTPUTS"])
+        with self.assertRaises(InvalidFieldDataException):
+            OUTPUTS(reset1="b10", reset2="b0", cautions="x00")
+
+    def testConstructionFromDefinition_InvalidField(self):
+        builder = MessageBuilder()
+        OUTPUTS = builder.build_message_class("OUTPUTS", register_defs["OUTPUTS"])
+        with self.assertRaises(InvalidFieldException):
+            OUTPUTS(reset1="b1", reset2="b0", cautions="x00", unknown="x000")
+
+    def testConstructionFromDefinition_ReadOnlyField(self):
+        builder = MessageBuilder()
+        OUTPUTS = builder.build_message_class("OUTPUTS", register_defs["OUTPUTS"])
+        with self.assertRaises(InvalidFieldException):
+            OUTPUTS(reset1="b1", reset2="b0", cautions="x00", unused="x000")
 
     def testAllMessageProductionMethods(self):
         builder = MessageBuilder(msg_fmts)
