@@ -99,10 +99,9 @@ class MessageBuilder:
             # initialize writable fields from parameters
             for param, val in kwargs.items():
 
-                if param not in writable_fields:
+                if param in all_fields and param not in writable_fields:
                     raise InvalidFieldException(f"Cannot specify a value for read-only field '{param}'.")
-
-                if param in all_fields:
+                elif param in all_fields:
                     context = None
                     if isinstance(val, Message):
                         context = type(val)
