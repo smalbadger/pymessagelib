@@ -279,10 +279,9 @@ class Field(ABC):
     def __invert__(self):
         """Return a new field with a bit-inverted value"""
         bin_val = self.render(fmt=Field.Format.Bin)
-        inv_bin_val = bin_val.replace("0", "_").replace("1", "0").replace("_", "0")
-        inv_val = Field.render(value=inv_bin_val, fmt=self._format)
-        newfield = type(self).__new__()
-        newfield.__init__(self.length_as_format(self._format), value=inv_val, fmt=self._format)
+        inv_bin_val = bin_val.replace("0", "_").replace("1", "0").replace("_", "1")
+        inv_val = Field.render_value(value=inv_bin_val, fmt=Field.Format.Bin, pad_to_length=len(self))
+        newfield = type(self)(self.length_as_format(self._format), value=inv_val, fmt=self._format)
         return newfield
 
     def __bool__(self):
@@ -313,16 +312,6 @@ class Field(ABC):
     def get_format(value):
         """Returns the format of a value"""
         return Field.bases()[value[0]]
-
-    @staticmethod
-    def pad_to_length(value, length):
-        """Adds the appropriate number of zeros to a value to achieve a specific width."""
-        prefix = value[0]
-        numeric_value = value[1:]
-        if len(numeric_value) <= length:
-            padding = "0" * (length - len(numeric_value))
-            return f"{prefix}{padding}{numeric_value}"
-        raise InvalidDataFormatException("Value is already longer than padding length")
 
 
 class Bit(Field):
