@@ -18,6 +18,7 @@ from _exceptions import (
     InvalidDataFormatException,
     MissingFieldDataException,
     InvalidFieldDataException,
+    ConflictingContextsException,
 )
 import math
 
@@ -185,21 +186,41 @@ class Message(ABC):
     def get_field_name_mapping(self, expand_nested=False):
         """TODO: Verify this function works"""
         fields = {}
-        
+
         def recursive_helper(cur_name, cur_field):
             if not cur_field.context:
                 fields[cur_name] = cur_field
                 return
-            
+
             for n, f in cur_field._nested_msg._fields.items():
-                recursive_helper(f'{cur_name}.{n}', f)
-        
+                recursive_helper(f"{cur_name}.{n}", f)
+
         for name, field in self._fields.items():
             if expand_nested and field.context:
                 recursive_helper(name, field)
             else:
                 fields[name] = field
-                
+
+        return fields
+
+    def get_context_mapping(self, expand_nested=True):
+        """TODO: Verify this function works"""
+        fields = {}
+
+        def recursive_helper(cur_name, cur_msg):
+            if cur_msg is None:
+                fields[cur_name] = None
+                return
+            fields[cur_name] = type(cur_msg)
+            for n, f in cur_msg._fields.items():
+                recursive_helper(f"{cur_name}.{n}", f._nested_msg)
+
+        for name, field in self._fields.items():
+            if expand_nested and field.context:
+                recursive_helper(name, field._nested_msg)
+            else:
+                fields[name] = field.context
+
         return fields
 
     def render_table(self, formats=(Field.Format.Hex, Field.Format.Bin), expand_nested=False) -> str:
@@ -208,15 +229,15 @@ class Message(ABC):
         and each subsequent column contains each field rendered in a specific format. The formats that
         fields are rendered as is dictated by the value of the `formats` parameter.
         """
-        
+
         title = type(self).__name__
-        
+
         fields = self.get_field_name_mapping(expand_nested)
-        
+
         if not formats:
             header = [["Field Name", "Value"]]
             field_values = [[name, field.render()] for name, field in fields.items()]
-            
+
         else:
             header = [["Field Name"] + [fmt.name for fmt in formats]]
             field_values = []
@@ -233,6 +254,19 @@ class Message(ABC):
         the tables in the corresponding row and fields that are equivalent are denoted
         by `==` in the same manner.
         """
+
+        if type(self) != type(other_message):
+            raise ConflictingContextsException(
+                f"Cannot render table comparison of message types {type(self)} and {type(other_message)}"
+            )
+
+        if expand_nested:
+            my_contexts = self.get_context_mapping(expand_nested)
+            other_contexts = other_message.get_context_mapping(expand_nested)
+
+            if my_contexts != other_contexts:
+                raise ConflictingContextsException(f"{my_contexts} != {other_contexts}")
+
         my_table = self.render_table(formats=formats, expand_nested=expand_nested).split("\n")
         other_table = other_message.render_table(formats=formats, expand_nested=expand_nested).split("\n")
 
@@ -246,10 +280,10 @@ class Message(ABC):
 
         counter = 0
         comparison_str = ""
-        for my_line, other_line, comp in zip(my_table, other_table, [None]*3+list(comps.values())+[None]):
+        for my_line, other_line, comp in zip(my_table, other_table, [None] * 3 + list(comps.values()) + [None]):
             comp_table = {
-                None:  "  ",
-                True:  "==",
+                None: "  ",
+                True: "==",
                 False: "!=",
             }
             comparison_str += f"{my_line}  {comp_table[comp]}  {other_line}\n"
@@ -276,10 +310,10 @@ class Message(ABC):
             if self._fields[name] != other._fields[name]:
                 return False
         return True
-    
+
     def update(self, data):
         """
-        Same as the Message.from_data method except a new object is not constructed. 
+        Same as the Message.from_data method except a new object is not constructed.
         All fields of the message are updated with the new data.
         """
         new_msg = type(self).from_data(data)

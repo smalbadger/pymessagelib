@@ -33,5 +33,9 @@ class ContextDataMismatchException(Exception):
     pass
 
 
+class ConflictingContextsException(Exception):
+    pass
+
+
 class CircularDependencyException(Exception):
     pass
