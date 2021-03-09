@@ -6,8 +6,8 @@ def calcLength(*args):
     bin_data = ""
     for arg in args:
         bin_data += arg.render(fmt=Field.Format.Bin, pad_to_length=len(arg) - 1)[1:]
-    hex = f"{int(bin_data, 2):X}"
-    length = len(hex) // 2
+    hex_str = f"{int(bin_data, 2):X}"
+    length = len(hex_str) // 2
     length_in_hex = f"x{length:04X}"
     return length_in_hex
 

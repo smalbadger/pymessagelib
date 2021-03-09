@@ -270,7 +270,7 @@ class Message(ABC):
         if isinstance(other, str):
             other = Field.render_value(value=other, fmt=Field.Format.Bin, pad_to_length=len(self))
             return self.render(fmt=Field.Format.Bin, pad_to_length=len(self)) == other
-        elif type(self) != type(other):
+        if type(self) != type(other):
             return False
         for name in self._fields:
             if self._fields[name] != other._fields[name]:
