@@ -52,6 +52,7 @@ class Field(ABC):
 
         self._name = ""
         self._parent_message = None
+        self._nested_msg = None
         self._context = context
         self._unit_length = length
         self._bit_length = length * type(self).bits_per_unit

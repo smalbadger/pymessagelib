@@ -73,4 +73,3 @@ class TestNestedMessages(unittest.TestCase):
         self.assertEqual(msg.or_field.byte_2, "xC0")
         self.assertEqual(msg.or_field.byte_3, "x00")
         self.assertEqual(msg.or_field.byte_4, "x01")
-        
