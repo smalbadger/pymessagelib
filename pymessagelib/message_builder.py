@@ -18,7 +18,7 @@ from _exceptions import (
     InvalidFieldDataException,
     InvalidDataFormatException,
     CircularDependencyException,
-    InvalidMessageDefinitionException,
+    MultipleMatchingMessageDefinitionsException,
 )
 from dependency_graph import DependencyGraph
 
@@ -57,7 +57,7 @@ class MessageBuilder:
         # Categorize the fields to generate methods appropriately
         all_fields = {}
         writable_fields = {}
-        read_only_fields = {}
+        readable_fields = {}
         auto_updated_fields = {}
         for name, item in fmt.items():
             if isinstance(item, Field):
@@ -65,7 +65,7 @@ class MessageBuilder:
                 if item.is_writable:
                     writable_fields[name] = item
                 if item.is_readable:
-                    read_only_fields[name] = item
+                    readable_fields[name] = item
                 if item.is_auto_updated:
                     auto_updated_fields[name] = item
             else:
@@ -98,7 +98,10 @@ class MessageBuilder:
 
             # initialize writable fields from parameters
             for param, val in kwargs.items():
-                if param in all_fields:
+
+                if param in all_fields and param not in writable_fields:
+                    raise InvalidFieldException(f"Cannot specify a value for read-only field '{param}'.")
+                elif param in all_fields:
                     context = None
                     if isinstance(val, Message):
                         context = type(val)
@@ -164,6 +167,6 @@ class MessageBuilder:
             return message
         else:
             msg_list = "\n".join([f"\t- {msg_cls.__name__}" for msg_cls in matches])
-            raise InvalidMessageDefinitionException(
+            raise MultipleMatchingMessageDefinitionsException(
                 f"Detected multiple message definitions that match the data '{data}':\n{msg_list}"
             )

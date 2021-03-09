@@ -229,19 +229,3 @@ class TestMessageTables(unittest.TestCase):
         msg2.or_field.context = self.builder.RANDOM_MEANING
 
         comp = self.msg.compare_tables(msg2, formats=None, expand_nested=True)[1]
-        print(comp)
-        self.assertEqual(
-            remove_whitespace(comp),
-            remove_whitespace(
-                """
-                    +------------+-----------+      +------------+-----------+
-                    | Field Name | Value     |      | Field Name | Value     |
-                    +------------+-----------+      +------------+-----------+
-                    | mid        | x0016     |  ==  | mid        | x0016     |
-                    | or_field   | xe0000001 |  ==  | or_field   | xe0000001 |
-                    | addr       | x60000001 |  ==  | addr       | x60000001 |
-                    | data       | x80000000 |  ==  | data       | x80000000 |
-                    +------------+-----------+      +------------+-----------+
-                """
-            ),
-        )

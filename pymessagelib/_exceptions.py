@@ -25,7 +25,7 @@ class InvalidDataFormatException(Exception):
     pass
 
 
-class InvalidMessageDefinitionException(Exception):
+class MultipleMatchingMessageDefinitionsException(Exception):
     pass
 
 
