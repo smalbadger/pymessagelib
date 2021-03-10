@@ -9,6 +9,7 @@ Created on Feb 18, 2021
 
 from abc import ABC
 from enum import Enum
+import operator
 import math
 import inspect
 import copy
@@ -209,10 +210,37 @@ class Field(ABC):
             return self.render()
         return f"<{type(self).__name__} Field, length={self._unit_length} ({len(self)} bits), value=undefined>"
 
+    def __len__(self):
+        """Return the number of bits in the field"""
+        return self._bit_length
+
+    ########################################
+    #  --  Conversion Special Methods  --  #
+    ########################################
+
+    def __int__(self):
+        """Converts the field to an integer"""
+        return int(self.render(fmt=Field.Format.Bin)[1:], 2)
+
+    def __index__(self):
+        """Converts the field to a hexadecimal string"""
+        return self.render(fmt=Field.Format.Hex)
+    
+    def __format__(self, fmt):
+        """Converts the field to a string. If fmt is not supported, the default representation is returned."""
+        if fmt in Field.bases():
+            return self.render(fmt=Field.bases()[fmt])
+        else:
+            return repr(self)
+
+    ########################################
+    #  --  Comparison Special Methods  --  #
+    ########################################
+    
     def __eq__(self, other):
-        """Compares this field with another field or a rendered value."""
+        """Returns True if self equals other. False otherwise."""
         if isinstance(other, Field):
-            return self.__eq__(other._value)
+            return self == other.render()
 
         self_prefix, self_numeric_value = self._value[0], self._value[1:]
         self_int_val = int(self_numeric_value, Field.bases()[self_prefix].value)
@@ -221,31 +249,112 @@ class Field(ABC):
         other_int_val = int(other_numeric_value, Field.bases()[other_prefix].value)
 
         return self_int_val == other_int_val
-
-    def __len__(self):
-        """Return the number of bits in the field"""
-        return self._bit_length
-
-    def __int__(self):
-        """Converts a field to an integer"""
-        return int(self.render(fmt=Field.Format.Bin)[1:], 2)
     
     def __lt__(self, other):
-        """Compares 2 fields"""
-        return int(self) < int(other)
+        """Return True if self is less than other. False otherwise"""
+        if isinstance(other, str):
+            other_prefix, other_numeric_value = other[0], other[1:]
+            return self < int(other_numeric_value, Field.bases()[other_prefix].value)
+
+        elif not isinstance(other, int):
+            return self < int(other)
+
+        return int(self) < other
+    
+    def __ne__(self, other):
+        """Returns False if self equals other. True otherwise."""
+        return not self == other
+    
+    def __gt__(self, other):
+        """Return True if self is greater than other. False otherwise"""
+        return not (self < other or self == other)
+    
+    def __ge__(self, other):
+        """Return True if self is greater than or equal to other. False otherwise"""
+        return self > other or self == other
+    
+    def __le__(self, other):
+        """Return True if self is less than or equal to other. False otherwise"""
+        return self < other or self == other
+    
+#     def __bytes__(self):
+#         pass
+    
+
+    ###############################################
+    #  --  Bitwise Operation Special Methods  --  #
+    ###############################################
+    
+    def __bitwise_helper(self, other, operator):
+        ops = {
+            "&": operator.and_,
+            "|": operator.or_,
+            "^": operator.xor,
+        }
+        op = ops[operator]
+        
+        if isinstance(other, str):
+            other_prefix, other_numeric_value = other[0], other[1:]
+            return self.__bitwise_helper(int(other_numeric_value, Field.bases()[other_prefix].value), operator)
+
+        elif not isinstance(other, int):
+            return self.__bitwise_helper(int(other), operator)
+        
+        val = format(op(int(self), other), 'b')
+        fieldCls = Bit if len(val) == 1 else Bits
+        return fieldCls(length=len(val), value=f"b{val}")
     
     def __and__(self, other):
-        """Returns a new field of the same type anded with the other field"""
-        # Need to copy the larger of the 2 fields to make sure the result fits.
-        to_copy = self if len(self) >= len(other) else other
-        new_field = copy.deepcopy(to_copy)
-        new_field.context = None
-        new_field.value = f"b{int(self) & int(other):b}"
-        return new_field
+        """Returns a new field of the same type 'and'ed with the other field"""
+        if isinstance(other, str):
+            other_prefix, other_numeric_value = other[0], other[1:]
+            return self & int(other_numeric_value, Field.bases()[other_prefix].value)
+
+        elif not isinstance(other, int):
+            return self & int(other)
+        
+        val = format(int(self) & other, 'b')
+        fieldCls = Bit if len(val) == 1 else Bits
+        return fieldCls(length=len(val), value=f"b{val}")
+
+    def __or__(self, other):
+        """Returns a new field of the same type 'or'ed with the other field"""
+        if isinstance(other, str):
+            other_prefix, other_numeric_value = other[0], other[1:]
+            return self | int(other_numeric_value, Field.bases()[other_prefix].value)
+
+        elif not isinstance(other, int):
+            return self | int(other)
+
+        val = format(int(self) | other, 'b')
+        fieldCls = Bit if len(val) == 1 else Bits
+        return fieldCls(length=len(val), value=f"b{val}")
+
+    def __xor__(self, other):
+        """Returns a new field of the same type 'or'ed with the other field"""
+        if isinstance(other, str):
+            other_prefix, other_numeric_value = other[0], other[1:]
+            return self ^ int(other_numeric_value, Field.bases()[other_prefix].value)
+
+        elif not isinstance(other, int):
+            return self ^ int(other)
+
+        val = format(int(self) ^ other, 'b')
+        fieldCls = Bit if len(val) == 1 else Bits
+        return fieldCls(length=len(val), value=f"b{val}")
+
+    def __invert__(self):
+        """Return a new field with a bit-inverted value"""
+        bin_val = self.render(fmt=Field.Format.Bin)
+        inv_bin_val = bin_val.replace("0", "_").replace("1", "0").replace("_", "1")
+        inv_val = Field.render_value(value=inv_bin_val, fmt=Field.Format.Bin, pad_to_length=len(self))
+        newfield = type(self)(self.length_as_format(self._format), value=inv_val, fmt=self._format)
+        return newfield
     
-    #     def __bytes__(self):
-    #         pass
-    #
+    def __neg__(self):
+        """Same as __invert__"""
+        return self.__invert__()
+
     #     def __call__(self):
     #         pass
     #
@@ -279,20 +388,8 @@ class Field(ABC):
     #     def __rxor__(self, other):
     #         pass
     #
-    #     def __or__(self, other):
-    #         pass
-    #
     #     def __ror__(self, other):
     #         pass
-
-
-    def __invert__(self):
-        """Return a new field with a bit-inverted value"""
-        bin_val = self.render(fmt=Field.Format.Bin)
-        inv_bin_val = bin_val.replace("0", "_").replace("1", "0").replace("_", "1")
-        inv_val = Field.render_value(value=inv_bin_val, fmt=Field.Format.Bin, pad_to_length=len(self))
-        newfield = type(self)(self.length_as_format(self._format), value=inv_val, fmt=self._format)
-        return newfield
 
     def __bool__(self):
         """Return True if the value of the field is non-zero"""
@@ -394,3 +491,33 @@ class QWords(Field):
     """1 Q-Word = 64 Bits"""
 
     bits_per_unit = 64
+
+singular_fields = {
+    QWord:  QWord,
+    QWords: QWord,
+    DWord:  DWord,
+    DWords: DWord,
+    Word:   Word,
+    Words:  Word,
+    Byte:   Byte,
+    Bytes:  Byte,
+    Nibble: Nibble,
+    Nibbles:Nibble,
+    Bit:    Bit,
+    Bits:   Bit,
+}
+
+plural_fields = {
+    QWord:  QWords,
+    QWords: QWords,
+    DWord:  DWords,
+    DWords: DWords,
+    Word:   Words,
+    Words:  Words,
+    Byte:   Bytes,
+    Bytes:  Bytes,
+    Nibble: Nibbles,
+    Nibbles:Nibbles,
+    Bit:    Bits,
+    Bits:   Bits,
+}
