@@ -11,6 +11,7 @@ from abc import ABC
 from enum import Enum
 import math
 import inspect
+import copy
 
 from _exceptions import (
     InvalidDataFormatException,
@@ -225,9 +226,23 @@ class Field(ABC):
         """Return the number of bits in the field"""
         return self._bit_length
 
-    #     def __lt__(self, other):
-    #         pass
-    #
+    def __int__(self):
+        """Converts a field to an integer"""
+        return int(self.render(fmt=Field.Format.Bin)[1:], 2)
+    
+    def __lt__(self, other):
+        """Compares 2 fields"""
+        return int(self) < int(other)
+    
+    def __and__(self, other):
+        """Returns a new field of the same type anded with the other field"""
+        # Need to copy the larger of the 2 fields to make sure the result fits.
+        to_copy = self if len(self) >= len(other) else other
+        new_field = copy.deepcopy(to_copy)
+        new_field.context = None
+        new_field.value = f"b{int(self) & int(other):b}"
+        return new_field
+    
     #     def __bytes__(self):
     #         pass
     #
@@ -255,9 +270,6 @@ class Field(ABC):
     #     def __rshift__(self, amount):
     #         pass
     #
-    #     def __and__(self, other):
-    #         pass
-    #
     #     def __rand__(self, other):
     #         pass
     #
@@ -272,9 +284,7 @@ class Field(ABC):
     #
     #     def __ror__(self, other):
     #         pass
-    #
-    #     def __int__(self):
-    #         pass
+
 
     def __invert__(self):
         """Return a new field with a bit-inverted value"""
