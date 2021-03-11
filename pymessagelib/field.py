@@ -382,9 +382,6 @@ class Field(ABC):
     #     def __rand__(self, other):
     #         pass
     #
-    #     def __xor__(self, other):
-    #         pass
-    #
     #     def __rxor__(self, other):
     #         pass
     #
