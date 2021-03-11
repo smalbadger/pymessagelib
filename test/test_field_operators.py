@@ -53,7 +53,9 @@ class TestFieldOperators(unittest.TestCase):
         self.assertEqual(f6, "b100")
         self.assertEqual(f1 & Byte(value="x2"), "x2")
         self.assertEqual(f1 & 'b10000010', 'b10000010')
+        self.assertEqual('b10000010' & f1, 'b10000010')
         self.assertEqual(f1 & 2, 'b10')
+        self.assertEqual(2 & f1, 'b10')
 
     def testOr(self):
         f1 = Bytes(2, value="b000011000010")
@@ -67,7 +69,9 @@ class TestFieldOperators(unittest.TestCase):
         f6 = f2 | f2
         self.assertEqual(f6, "b100")
         self.assertEqual(f1 | 'b10000011', 'b11000011')
+        self.assertEqual('b10000011' | f1, 'b11000011')
         self.assertEqual(f1 | 15, 'b11001111')
+        self.assertEqual(15 | f1, 'b11001111')
     
     def testXor(self):
         f1 = Bytes(2, value="b000011000010")
@@ -85,13 +89,19 @@ class TestFieldOperators(unittest.TestCase):
         self.assertEqual(f1 ^ 15, 'b11001101')
         self.assertEqual(15 ^ f1, 'b11001101')
         
-    @unittest.expectedFailure
     def testContains(self):
+        """
+        Determine if a string or another field is contained in this field.
+        If comparing with a string, the data format of the string will be used for the search.
+        If comparing with another Field, a binary search will be performed.
+        """
         f1 = Bytes(2, value='x1234')
         self.assertTrue('b10010' in f1)
+        self.assertTrue('x8' not in f1)
+        self.assertTrue('b1000' in f1)
         self.assertTrue('b11111' not in f1)
-        self.assertTrue(Bytes(1, value='x23') in f1)
-        self.assertTrue(Bytes(1, value='x23') not in f1)
+        self.assertTrue(Byte(value='x23') in f1)
+        self.assertTrue(Byte(value='x8') not in f1)
         
     @unittest.expectedFailure
     def testGetItem(self):
