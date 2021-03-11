@@ -224,7 +224,7 @@ class Field(ABC):
 
     def __index__(self):
         """Converts the field to a hexadecimal string"""
-        return self.render(fmt=Field.Format.Hex)
+        return int(self)
     
     def __format__(self, fmt):
         """Converts the field to a string. If fmt is not supported, the default representation is returned."""
@@ -280,7 +280,6 @@ class Field(ABC):
 #     def __bytes__(self):
 #         pass
     
-
     ###############################################
     #  --  Bitwise Operation Special Methods  --  #
     ###############################################
@@ -371,26 +370,31 @@ class Field(ABC):
         """Same as __invert__"""
         return self.__invert__()
 
-    #     def __contains__(self):
-    #         pass
-    #
-    #     def __getitem__(self):
-    #         pass
-    #
-    #     def __setitem__(self, value):
-    #         pass
-    #
-    #     def __add__(self, other):
-    #         pass
-    #
-    #     def __sub__(self, other):
-    #         pass
-    #
+    def __contains__(self, search):
+        if isinstance(search, str):
+            search_val = search[1:]
+            search_in = self.render(fmt=Field.get_format(search))
+            return search_val in search_in
+        
+        elif isinstance(search, Field):   
+            return self.__contains__(search.render(fmt=Field.Format.Bin))
 
     def __bool__(self):
         """Return True if the value of the field is non-zero"""
         val_minus_format = self._value[1:]
         return any((False if char == "0" else True for char in val_minus_format))
+
+    def __getitem__(self, index):
+        pass
+
+    def __setitem__(self, index, value):
+        pass
+
+    def __add__(self, other):
+        pass
+
+    def __sub__(self, other):
+        pass
 
     ######################################################
     # Static Methods
