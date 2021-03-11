@@ -7,6 +7,10 @@ class TestFieldOperators(unittest.TestCase):
         field = Bits(7, value="b0011011")
         self.assertEqual(~field, "b1100100")
 
+    def testNeg(self):
+        field = Bits(7, value="b0011011")
+        self.assertEqual(-field, "b1100100")
+
     def testBool_True(self):
         field = Bits(10, value="b0000000001")
         self.assertTrue(field)
@@ -60,3 +64,15 @@ class TestFieldOperators(unittest.TestCase):
         self.assertEqual(f5, "b000011000010")
         f6 = f2 | f2
         self.assertEqual(f6, "b100")
+    
+    def testXor(self):
+        f1 = Bytes(2, value="b000011000010")
+        f2 = Bits(3, value="b100")
+        f3 = f1 ^ f2
+        self.assertEqual(f3, "b000011000110")
+        f4 = f2 ^ f1
+        self.assertEqual(f4, "b000011000110")
+        f5 = f1 ^ f1
+        self.assertEqual(f5, "b000000000000")
+        f6 = f2 ^ f2
+        self.assertEqual(f6, "b000")
