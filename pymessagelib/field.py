@@ -285,30 +285,30 @@ class Field(ABC):
     #  --  Bitwise Operation Special Methods  --  #
     ###############################################
     
-    def __bitwise_helper(self, other, operator):
-        ops = {
-            "&": operator.and_,
-            "|": operator.or_,
-            "^": operator.xor,
-        }
-        op = ops[operator]
-        
-        if isinstance(other, str):
-            other_prefix, other_numeric_value = other[0], other[1:]
-            return self.__bitwise_helper(int(other_numeric_value, Field.bases()[other_prefix].value), operator)
-
-        elif not isinstance(other, int):
-            return self.__bitwise_helper(int(other), operator)
-        
-        val = format(op(int(self), other), 'b')
-        fieldCls = Bit if len(val) == 1 else Bits
-        return fieldCls(length=len(val), value=f"b{val}")
+#     def __bitwise_helper(self, other, operator):
+#         ops = {
+#             "&": operator.and_,
+#             "|": operator.or_,
+#             "^": operator.xor,
+#         }
+#         op = ops[operator]
+#         
+#         if isinstance(other, str):
+#             other_prefix, other_numeric_value = other[0], other[1:]
+#             return self.__bitwise_helper(int(other_numeric_value, Field.get_format(other).value), operator)
+# 
+#         elif not isinstance(other, int):
+#             return self.__bitwise_helper(int(other), operator)
+#         
+#         val = format(op(int(self), other), 'b')
+#         fieldCls = Bit if len(val) == 1 else Bits
+#         return fieldCls(length=len(val), value=f"b{val}")
     
     def __and__(self, other):
         """Returns a new field of the same type 'and'ed with the other field"""
         if isinstance(other, str):
             other_prefix, other_numeric_value = other[0], other[1:]
-            return self & int(other_numeric_value, Field.bases()[other_prefix].value)
+            return self & int(other_numeric_value, Field.get_format(other).value)
 
         elif not isinstance(other, int):
             return self & int(other)
@@ -321,7 +321,7 @@ class Field(ABC):
         """Returns a new field of the same type 'or'ed with the other field"""
         if isinstance(other, str):
             other_prefix, other_numeric_value = other[0], other[1:]
-            return self | int(other_numeric_value, Field.bases()[other_prefix].value)
+            return self | int(other_numeric_value, Field.get_format(other).value)
 
         elif not isinstance(other, int):
             return self | int(other)
@@ -334,7 +334,7 @@ class Field(ABC):
         """Returns a new field of the same type 'or'ed with the other field"""
         if isinstance(other, str):
             other_prefix, other_numeric_value = other[0], other[1:]
-            return self ^ int(other_numeric_value, Field.bases()[other_prefix].value)
+            return self ^ int(other_numeric_value, Field.get_format(other).value)
 
         elif not isinstance(other, int):
             return self ^ int(other)
@@ -342,6 +342,22 @@ class Field(ABC):
         val = format(int(self) ^ other, 'b')
         fieldCls = Bit if len(val) == 1 else Bits
         return fieldCls(length=len(val), value=f"b{val}")
+
+    __rand__ = __and__
+    __rxor__ = __xor__
+    __ror__  = __or__
+    
+    def __lshift__(self, amount):
+        shifted_bin_val = format(int(self) << amount, 'b')
+        if len(shifted_bin_val) > len(self):
+            shifted_bin_val = shifted_bin_val[-len(self):]
+        return type(self)(length=self._unit_length, value=f"b{shifted_bin_val}")
+
+    def __rshift__(self, amount):
+        shifted_bin_val = format(int(self) >> amount, 'b')
+        if len(shifted_bin_val) > len(self):
+            shifted_bin_val = shifted_bin_val[-len(self):]
+        return type(self)(length=self._unit_length, value=f"b{shifted_bin_val}")
 
     def __invert__(self):
         """Return a new field with a bit-inverted value"""
@@ -355,9 +371,6 @@ class Field(ABC):
         """Same as __invert__"""
         return self.__invert__()
 
-    #     def __call__(self):
-    #         pass
-    #
     #     def __contains__(self):
     #         pass
     #
@@ -373,20 +386,6 @@ class Field(ABC):
     #     def __sub__(self, other):
     #         pass
     #
-    #     def __lshift__(self, amount):
-    #         pass
-    #
-    #     def __rshift__(self, amount):
-    #         pass
-    #
-    #     def __rand__(self, other):
-    #         pass
-    #
-    #     def __rxor__(self, other):
-    #         pass
-    #
-    #     def __ror__(self, other):
-    #         pass
 
     def __bool__(self):
         """Return True if the value of the field is non-zero"""
@@ -488,33 +487,3 @@ class QWords(Field):
     """1 Q-Word = 64 Bits"""
 
     bits_per_unit = 64
-
-singular_fields = {
-    QWord:  QWord,
-    QWords: QWord,
-    DWord:  DWord,
-    DWords: DWord,
-    Word:   Word,
-    Words:  Word,
-    Byte:   Byte,
-    Bytes:  Byte,
-    Nibble: Nibble,
-    Nibbles:Nibble,
-    Bit:    Bit,
-    Bits:   Bit,
-}
-
-plural_fields = {
-    QWord:  QWords,
-    QWords: QWords,
-    DWord:  DWords,
-    DWords: DWords,
-    Word:   Words,
-    Words:  Words,
-    Byte:   Bytes,
-    Bytes:  Bytes,
-    Nibble: Nibbles,
-    Nibbles:Nibbles,
-    Bit:    Bits,
-    Bits:   Bits,
-}
