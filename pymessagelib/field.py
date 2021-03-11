@@ -225,7 +225,7 @@ class Field(ABC):
     def __index__(self):
         """Converts the field to a hexadecimal string"""
         return int(self)
-    
+
     def __format__(self, fmt):
         """Converts the field to a string. If fmt is not supported, the default representation is returned."""
         if fmt in Field.bases():
@@ -236,7 +236,7 @@ class Field(ABC):
     ########################################
     #  --  Comparison Special Methods  --  #
     ########################################
-    
+
     def __eq__(self, other):
         """Returns True if self equals other. False otherwise."""
         if isinstance(other, Field):
@@ -249,7 +249,7 @@ class Field(ABC):
         other_int_val = int(other_numeric_value, Field.bases()[other_prefix].value)
 
         return self_int_val == other_int_val
-    
+
     def __lt__(self, other):
         """Return True if self is less than other. False otherwise"""
         if isinstance(other, str):
@@ -260,49 +260,49 @@ class Field(ABC):
             return self < int(other)
 
         return int(self) < other
-    
+
     def __ne__(self, other):
         """Returns False if self equals other. True otherwise."""
         return not self == other
-    
+
     def __gt__(self, other):
         """Return True if self is greater than other. False otherwise"""
         return not (self < other or self == other)
-    
+
     def __ge__(self, other):
         """Return True if self is greater than or equal to other. False otherwise"""
         return self > other or self == other
-    
+
     def __le__(self, other):
         """Return True if self is less than or equal to other. False otherwise"""
         return self < other or self == other
-    
-#     def __bytes__(self):
-#         pass
-    
+
+    #     def __bytes__(self):
+    #         pass
+
     ###############################################
     #  --  Bitwise Operation Special Methods  --  #
     ###############################################
-    
-#     def __bitwise_helper(self, other, operator):
-#         ops = {
-#             "&": operator.and_,
-#             "|": operator.or_,
-#             "^": operator.xor,
-#         }
-#         op = ops[operator]
-#         
-#         if isinstance(other, str):
-#             other_prefix, other_numeric_value = other[0], other[1:]
-#             return self.__bitwise_helper(int(other_numeric_value, Field.get_format(other).value), operator)
-# 
-#         elif not isinstance(other, int):
-#             return self.__bitwise_helper(int(other), operator)
-#         
-#         val = format(op(int(self), other), 'b')
-#         fieldCls = Bit if len(val) == 1 else Bits
-#         return fieldCls(length=len(val), value=f"b{val}")
-    
+
+    #     def __bitwise_helper(self, other, operator):
+    #         ops = {
+    #             "&": operator.and_,
+    #             "|": operator.or_,
+    #             "^": operator.xor,
+    #         }
+    #         op = ops[operator]
+    #
+    #         if isinstance(other, str):
+    #             other_prefix, other_numeric_value = other[0], other[1:]
+    #             return self.__bitwise_helper(int(other_numeric_value, Field.get_format(other).value), operator)
+    #
+    #         elif not isinstance(other, int):
+    #             return self.__bitwise_helper(int(other), operator)
+    #
+    #         val = format(op(int(self), other), 'b')
+    #         fieldCls = Bit if len(val) == 1 else Bits
+    #         return fieldCls(length=len(val), value=f"b{val}")
+
     def __and__(self, other):
         """Returns a new field of the same type 'and'ed with the other field"""
         if isinstance(other, str):
@@ -311,8 +311,8 @@ class Field(ABC):
 
         elif not isinstance(other, int):
             return self & int(other)
-        
-        val = format(int(self) & other, 'b')
+
+        val = format(int(self) & other, "b")
         fieldCls = Bit if len(val) == 1 else Bits
         return fieldCls(length=len(val), value=f"b{val}")
 
@@ -325,7 +325,7 @@ class Field(ABC):
         elif not isinstance(other, int):
             return self | int(other)
 
-        val = format(int(self) | other, 'b')
+        val = format(int(self) | other, "b")
         fieldCls = Bit if len(val) == 1 else Bits
         return fieldCls(length=len(val), value=f"b{val}")
 
@@ -338,24 +338,24 @@ class Field(ABC):
         elif not isinstance(other, int):
             return self ^ int(other)
 
-        val = format(int(self) ^ other, 'b')
+        val = format(int(self) ^ other, "b")
         fieldCls = Bit if len(val) == 1 else Bits
         return fieldCls(length=len(val), value=f"b{val}")
 
     __rand__ = __and__
     __rxor__ = __xor__
-    __ror__  = __or__
-    
+    __ror__ = __or__
+
     def __lshift__(self, amount):
-        shifted_bin_val = format(int(self) << amount, 'b')
+        shifted_bin_val = format(int(self) << amount, "b")
         if len(shifted_bin_val) > len(self):
-            shifted_bin_val = shifted_bin_val[-len(self):]
+            shifted_bin_val = shifted_bin_val[-len(self) :]
         return type(self)(length=self._unit_length, value=f"b{shifted_bin_val}")
 
     def __rshift__(self, amount):
-        shifted_bin_val = format(int(self) >> amount, 'b')
+        shifted_bin_val = format(int(self) >> amount, "b")
         if len(shifted_bin_val) > len(self):
-            shifted_bin_val = shifted_bin_val[-len(self):]
+            shifted_bin_val = shifted_bin_val[-len(self) :]
         return type(self)(length=self._unit_length, value=f"b{shifted_bin_val}")
 
     def __invert__(self):
@@ -365,7 +365,7 @@ class Field(ABC):
         inv_val = Field.render_value(value=inv_bin_val, fmt=Field.Format.Bin, pad_to_length=len(self))
         newfield = type(self)(self.length_as_format(self._format), value=inv_val, fmt=self._format)
         return newfield
-    
+
     def __neg__(self):
         """Same as __invert__"""
         return self.__invert__()
@@ -375,8 +375,8 @@ class Field(ABC):
             search_val = search[1:]
             search_in = self.render(fmt=Field.get_format(search))
             return search_val in search_in
-        
-        elif isinstance(search, Field):   
+
+        elif isinstance(search, Field):
             return self.__contains__(search.render(fmt=Field.Format.Bin))
 
     def __bool__(self):
