@@ -79,9 +79,11 @@ class Field(ABC):
         if inspect.isfunction(value):
             self._value_function = value
         elif value is not None:
-            assert self.value_is_valid(value)
+            if not self.value_is_valid(value):
+                raise InvalidFieldDataException(f"The value {value} is not valid for field {self}")
             self._value = self.render(value=value, fmt=Field.Format.Bin, pad_to_length=self._bit_length)
-            assert len(self._value) - 1 == self._bit_length
+            if not len(self._value) - 1 == self._bit_length:
+                raise InvalidDataFormatException(f"{self._value} is not the correct bit length of {self._bit_length}")
 
     def render(self, value=None, fmt=None, pad_to_length=0) -> str:
         """
@@ -176,7 +178,7 @@ class Field(ABC):
             if self.context:
                 self._nested_msg.update(value)
         else:
-            raise InvalidFieldDataException(f"{value} is not a valid value for {self}")
+            raise InvalidFieldDataException(f"{value} is not a valid value for this field")
 
     @property
     def context(self):
@@ -346,12 +348,14 @@ class Field(ABC):
     __ror__ = __or__
 
     def __lshift__(self, amount):
+        """Shift value to the left by some amount and return another Field object"""
         shifted_bin_val = format(int(self) << amount, "b")
         if len(shifted_bin_val) > len(self):
             shifted_bin_val = shifted_bin_val[-len(self) :]
         return type(self)(length=self._unit_length, value=f"b{shifted_bin_val}")
 
     def __rshift__(self, amount):
+        """Shift value to the right by some amount and return another Field object"""
         shifted_bin_val = format(int(self) >> amount, "b")
         return type(self)(length=self._unit_length, value=f"b{shifted_bin_val}")
 
@@ -368,6 +372,13 @@ class Field(ABC):
         return self.__invert__()
 
     def __contains__(self, search):
+        """
+        Determine if a field or value is contained this field.
+        
+        The search value must be a valid formatted string or another value.
+        If the search value is a string, boundaries of the selected format will be enforced.
+        If the search value is a field, the value will be rendered as a binary string and a bit-comaprison will be performed.
+        """
         if isinstance(search, str):
             search_val = search[1:]
             search_in = self.render(fmt=Field.get_format(search))
@@ -382,6 +393,21 @@ class Field(ABC):
         return any((False if char == "0" else True for char in val_minus_format))
 
     def __getitem__(self, subscript):
+        """
+        Retrieve a field object that contains a subset of data from this field.
+        
+        Slice Criteria:
+        ---------------
+        - Both start and stop must be specified and step must not be specified.
+        - Both start and stop are inclusive unlike normal string/list slices where stop is exclusive.
+        - If start is less than stop, the bit sequence will be reversed.
+        - If start and stop are equal, a normal indexing operation is performed.
+        
+        Index Criteria:
+        ---------------
+        - Negative indecies are not supported
+        - The index corresponds to the bit-position starting from the LSB (on the right)
+        """
         if isinstance(subscript, slice):
             if subscript.step is not None:
                 raise IndexError(f"Field slicing must not include a step value. Invalid step {subscript.step}")
@@ -410,14 +436,86 @@ class Field(ABC):
             bit = bin_val[subscript]
             return Bit(value=f'b{bit}')
 
-    def __setitem__(self, index, value):
-        pass
-
+    def __setitem__(self, subscript, value):
+        """
+        Set specific bits in the field
+        
+        Raises an InvalidFieldDataException if the field is not writable
+        Raises an InvalidDataFormatException if the number of bits does not match the start and stop indecies.
+        
+        Slice Criteria:
+        ---------------
+        - Both start and stop must be specified and step must not be specified.
+        - Both start and stop are inclusive unlike normal string/list slices where stop is exclusive.
+        - If start is less than stop, the bit sequence will be reversed.
+        - If start and stop are equal, a normal indexing operation is performed.
+        - The number of bits specified must equal the difference between start and stop plus one.
+        
+        Index Criteria:
+        ---------------
+        - Negative indices are not supported
+        - The index corresponds to the bit-position starting from the LSB (on the right)
+        """
+        
+        if not self.is_writable:
+            raise InvalidFieldDataException(f"This field is not writable")
+        
+        if isinstance(subscript, slice):
+            if subscript.step is not None:
+                raise IndexError(f"Field slicing must not include a step value. Invalid step {subscript.step}")
+            if subscript.start is None or subscript.stop is None:
+                raise IndexError("Start and stop indexes of field slices must be specified.")
+            
+            max_ = max(subscript.start, subscript.stop)
+            if max_ > len(self)-1:
+                raise IndexError(f"Index value {max_} exceeds the length of field.")
+            min_ = min(subscript.start, subscript.stop)
+            if min_ < 0:
+                raise IndexError(f"Index value {min_} is less than zero.")
+            
+            if subscript.start == subscript.stop:
+                return self.__setitem__(subscript.start, value)
+            
+            self_bin_val = format(self, "b")[1:][::-1]
+            val_bin_val = Field.render_value(value=value, fmt=Field.Format.Bin, pad_to_length=max_-min_+1)[1:][::-1]
+            if subscript.start == min_:
+                val_bin_val = val_bin_val[::-1]
+                
+            final_val = f'{self_bin_val[:min_]}{val_bin_val}{self_bin_val[max_+1:]}'[::-1]
+            self.value = "b" + final_val
+        else:
+            if subscript < 0:
+                raise IndexError("Negative indexing not supported in Field class")
+            if subscript >= len(self):
+                raise IndexError(f"{subscript} is greater than the most significant bit location of this field.")
+            
+            val = Field.render_value(value=value, fmt=Field.Format.Bin, pad_to_length=1)[1]
+            self_bin_val = format(self, "b")[1:][::-1]
+            rev_val = f'{self_bin_val[:subscript]}{val}{self_bin_val[subscript+1:]}'
+            self.value = f'b{rev_val[::-1]}'
+            
     def __add__(self, other):
-        pass
-
-    def __sub__(self, other):
-        pass
+        """
+        If other is a correctly formatted value or another field, concatenate the values and return new field.
+        If other is an integer, add the integer to the field value, but truncate to length of original field.
+        """
+        
+        if isinstance(other, int):
+            bin_val = format(int(self) + other, 'b')[::-1][:len(self)][::-1]
+            return type(self)(self._unit_length, value=f"b{bin_val}")
+        
+        if isinstance(other, str):
+            fmt = Field.get_format(other)
+            other_val = other[1:]
+            self_val = self.render(fmt=fmt)[1:]
+            final_val = Field.inverted_bases()[fmt] + self_val + other_val
+            bit_final_val = Field.render_value(value=final_val, fmt=Field.Format.Bin, pad_to_length=len(final_val)*4)
+            return Bits(len(bit_final_val)-1, value=bit_final_val)
+        
+        if isinstance(other, Field):
+            return self.__add__(other.render(fmt=Field.Format.Bin))
+        
+        raise ValueError(f"Cannot add {type(other)} to Field type")
 
     ######################################################
     # Static Methods

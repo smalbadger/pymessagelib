@@ -1,5 +1,6 @@
 import unittest
 from field import Field, Bit, Bits, Byte, Bytes, Nibbles
+from _exceptions import InvalidFieldDataException, InvalidDataFormatException
 
 
 class TestFieldOperators(unittest.TestCase):
@@ -165,51 +166,57 @@ class TestFieldOperators(unittest.TestCase):
         with self.assertRaises(IndexError):
             f1[:]
 
-    @unittest.expectedFailure
     def testSetItem(self):
         f1 = Bytes(2, value="x2345")
-
-        f1[0] = "b0"
-        self.assertTrue(f1 == "x2344")
-        f1[15] = "b1"
-        self.assertTrue(f1 == "x6344")
+        with self.assertRaises(InvalidFieldDataException):
+            f1[0] = "b0"
+            
+        f2 = Bytes(2)
+        f2.value = "x2345"
+        f2[0] = 'b0'
+        self.assertEqual(f2, "x2344")
+        f2[15] = "b1"
+        self.assertEqual(f2, "xA344")
 
         with self.assertRaises(IndexError):
-            f1[-1] = "b1"
+            f2[-1] = "b1"
         with self.assertRaises(IndexError):
-            f1[16] = "b1"
+            f2[16] = "b1"
 
-        # TODO: Try setting a bit that can't be set (constant or auto-update field) and see error
-
-    @unittest.expectedFailure
     def testSetSlice(self):
         f1 = Bytes(2, value="x2345")
+        with self.assertRaises(InvalidFieldDataException):
+            f1[15:8] = "x23"
+            
+        f2 = Bytes(2)
+        f2.value = "x2345"
+        f2[7:0] = "x23"
+        self.assertTrue(f2 == "x2323")
+        f2[0:7] = "x21"
+        self.assertTrue(f2 == "x2384")
+        
+        with self.assertRaises(IndexError):
+            f2[-1:0] = 'x1'
+        with self.assertRaises(IndexError):
+            f2[0:-1] = 'x1'
+        with self.assertRaises(IndexError):
+            f2[0:0:-1] = 'x1'
+        with self.assertRaises(InvalidFieldDataException):
+            f2[7:0] = 'x1234'
 
-        f1[15:8] = "x23"
-        self.assertTrue(f1 == "x2323")
-        f1[0:7] = "x21"
-        self.assertTrue(f1 == "x2384")
-
-        # TODO: Try setting a bit that can't be set (constant or auto-update field) and see error
-
-    @unittest.expectedFailure
-    def testAdd(self):
+    def testAdd_WithNoOverflow(self):
+        f1 = Bytes(2, value="x0002")
+        self.assertEqual((f1 + 16), "x12")
+        
+    def testAdd_WithOverflow(self):
+        f2 = Bit(value='b1')
+        self.assertEqual(f2+1, 'b0')
+        
+    def testAdd_Concatenation(self):
         f1 = Bytes(2, value="x0002")
         f2 = Bytes(2, value="x0010")
-        self.assertTrue((f1 + "x10") == "x12")
-        self.assertTrue((f1 + 16) == "x12")
-        self.assertTrue((f1 + f2) == "x12")
-
-    @unittest.expectedFailure
-    def testSub(self):
-        f1 = Bytes(2, value="x0002")
-        f2 = Bytes(2, value="x0010")
-        self.assertTrue((f2 - "x2") == "xE")
-        self.assertTrue((f2 - 2) == "xE")
-        self.assertTrue((f2 - f1) == "xE")
-
-        # Test 2's complement
-        self.assertTrue((f2 - "x1F") == "x1101")
+        self.assertEqual((f1 + "x10"), "x000210")
+        self.assertEqual((f1 + f2), "x00020010")
 
     def testLeftShift(self):
         f1 = Bytes(2, value="x0002")
