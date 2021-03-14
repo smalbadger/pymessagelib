@@ -384,7 +384,9 @@ class Field(ABC):
     def __getitem__(self, subscript):
         if isinstance(subscript, slice):
             if subscript.step is not None:
-                raise Exception(f"Field slicing must not include a step value. Invalid step {subscript.step}")
+                raise IndexError(f"Field slicing must not include a step value. Invalid step {subscript.step}")
+            if subscript.start is None or subscript.stop is None:
+                raise IndexError("Start and stop indexes of field slices must be specified.")
             
             max_ = max(subscript.start, subscript.stop)
             if max_ > len(self)-1:

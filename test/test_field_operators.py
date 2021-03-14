@@ -160,6 +160,10 @@ class TestFieldOperators(unittest.TestCase):
             f1[15:-1]
         with self.assertRaises(IndexError):
             f1[16:-1]
+        with self.assertRaises(IndexError):
+            f1[0:0:-1]
+        with self.assertRaises(IndexError):
+            f1[:]
 
     @unittest.expectedFailure
     def testSetItem(self):
