@@ -26,6 +26,9 @@ class TestFieldOperators(unittest.TestCase):
         self.assertTrue(int(field) == 15)
         field = Bytes(10, value="o12")
         self.assertTrue(int(field) == 10)
+        
+    def testHex(self):
+        self.assertEqual(hex(Bits(10, value='b100')), '0x4')
 
     def testLessThanGreaterThan(self):
         f1 = Bits(10, value="b0000000000")
