@@ -206,7 +206,7 @@ class TestFieldOperators(unittest.TestCase):
         with self.assertRaises(IndexError):
             f2[0:] = "x1"
         with self.assertRaises(IndexError):
-            f2[16:] = "x1"
+            f2[16:0] = "x1"
         with self.assertRaises(InvalidFieldDataException):
             f2[7:0] = "x1234"
 
