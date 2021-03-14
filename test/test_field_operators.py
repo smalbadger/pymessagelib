@@ -211,12 +211,14 @@ class TestFieldOperators(unittest.TestCase):
             f2[7:0] = "x1234"
 
     def testAdd_WithNoOverflow(self):
-        f1 = Bytes(2, value="x0002")
-        self.assertEqual((f1 + 16), "x12")
+        self.assertEqual(Bytes(2, value="x0002") + 16, "x12")
 
     def testAdd_WithOverflow(self):
-        f2 = Bit(value="b1")
-        self.assertEqual(f2 + 1, "b0")
+        self.assertEqual(Bit(value="b1") + 1, "b0")
+        
+    def testAdd_InvalidType(self):
+        with self.assertRaises(ValueError):
+            Bit(value='b1') + [1,2]
 
     def testAdd_Concatenation(self):
         f1 = Bytes(2, value="x0002")
