@@ -29,6 +29,13 @@ class TestFieldOperators(unittest.TestCase):
         
     def testHex(self):
         self.assertEqual(hex(Bits(10, value='b100')), '0x4')
+        
+    def testFormat(self):
+        field = Bits(6, 'b101100')
+        self.assertEqual(format(field, 'x'), 'x2c')
+        self.assertEqual(format(field, 'd'), 'd44')
+        self.assertEqual(format(field, 'o'), 'o54')
+        self.assertEqual(format(field, 'b'), 'b101100')
 
     def testLessThanGreaterThan(self):
         f1 = Bits(10, value="b0000000000")
