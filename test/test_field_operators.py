@@ -195,6 +195,8 @@ class TestFieldOperators(unittest.TestCase):
         self.assertTrue(f2 == "x2323")
         f2[0:7] = "x21"
         self.assertTrue(f2 == "x2384")
+        f2[0:0] = "b1"
+        self.assertTrue(f2 == "x2385")
         
         with self.assertRaises(IndexError):
             f2[-1:0] = 'x1'
@@ -202,6 +204,10 @@ class TestFieldOperators(unittest.TestCase):
             f2[0:-1] = 'x1'
         with self.assertRaises(IndexError):
             f2[0:0:-1] = 'x1'
+        with self.assertRaises(IndexError):
+            f2[0:] = 'x1'
+        with self.assertRaises(IndexError):
+            f2[16:] = 'x1'
         with self.assertRaises(InvalidFieldDataException):
             f2[7:0] = 'x1234'
 
