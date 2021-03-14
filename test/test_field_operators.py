@@ -4,7 +4,6 @@ from _exceptions import InvalidFieldDataException, InvalidDataFormatException
 
 
 class TestFieldOperators(unittest.TestCase):
-
     def testInvert(self):
         field = Bits(7, value="b0011011")
         self.assertEqual(~field, "b1100100")
@@ -28,16 +27,16 @@ class TestFieldOperators(unittest.TestCase):
         self.assertTrue(int(field) == 15)
         field = Bytes(10, value="o12")
         self.assertTrue(int(field) == 10)
-        
+
     def testHex(self):
-        self.assertEqual(hex(Bits(10, value='b100')), '0x4')
-        
+        self.assertEqual(hex(Bits(10, value="b100")), "0x4")
+
     def testFormat(self):
-        field = Bits(6, 'b101100')
-        self.assertEqual(format(field, 'x'), 'x2c')
-        self.assertEqual(format(field, 'd'), 'd44')
-        self.assertEqual(format(field, 'o'), 'o54')
-        self.assertEqual(format(field, 'b'), 'b101100')
+        field = Bits(6, "b101100")
+        self.assertEqual(format(field, "x"), "x2c")
+        self.assertEqual(format(field, "d"), "d44")
+        self.assertEqual(format(field, "o"), "o54")
+        self.assertEqual(format(field, "b"), "b101100")
 
     def testLessThanGreaterThan(self):
         f1 = Bits(10, value="b0000000000")
@@ -119,16 +118,16 @@ class TestFieldOperators(unittest.TestCase):
         f1 = Bytes(2, value="x2345")
 
         # test getting single bits
-        self.assertEqual(f1[0] , "b1")
-        self.assertEqual(f1[1] , "b0")
-        self.assertEqual(f1[2] , "b1")
-        self.assertEqual(f1[3] , "b0")
-        self.assertEqual(f1[4] , "b0")
-        self.assertEqual(f1[5] , "b0")
-        self.assertEqual(f1[6] , "b1")
-        self.assertEqual(f1[7] , "b0")
-        self.assertEqual(f1[8] , "b1")
-        self.assertEqual(f1[9] , "b1")
+        self.assertEqual(f1[0], "b1")
+        self.assertEqual(f1[1], "b0")
+        self.assertEqual(f1[2], "b1")
+        self.assertEqual(f1[3], "b0")
+        self.assertEqual(f1[4], "b0")
+        self.assertEqual(f1[5], "b0")
+        self.assertEqual(f1[6], "b1")
+        self.assertEqual(f1[7], "b0")
+        self.assertEqual(f1[8], "b1")
+        self.assertEqual(f1[9], "b1")
         self.assertEqual(f1[10], "b0")
         self.assertEqual(f1[11], "b0")
         self.assertEqual(f1[12], "b0")
@@ -154,7 +153,7 @@ class TestFieldOperators(unittest.TestCase):
         self.assertTrue(f1[0:7] == "xA2")
         self.assertTrue(f1[8:15] == "xC4")
 
-        self.assertTrue(f1[0:0] == 'b1')
+        self.assertTrue(f1[0:0] == "b1")
 
         with self.assertRaises(IndexError):
             f1[16:0]
@@ -171,10 +170,10 @@ class TestFieldOperators(unittest.TestCase):
         f1 = Bytes(2, value="x2345")
         with self.assertRaises(InvalidFieldDataException):
             f1[0] = "b0"
-            
+
         f2 = Bytes(2)
         f2.value = "x2345"
-        f2[0] = 'b0'
+        f2[0] = "b0"
         self.assertEqual(f2, "x2344")
         f2[15] = "b1"
         self.assertEqual(f2, "xA344")
@@ -188,7 +187,7 @@ class TestFieldOperators(unittest.TestCase):
         f1 = Bytes(2, value="x2345")
         with self.assertRaises(InvalidFieldDataException):
             f1[15:8] = "x23"
-            
+
         f2 = Bytes(2)
         f2.value = "x2345"
         f2[7:0] = "x23"
@@ -197,28 +196,28 @@ class TestFieldOperators(unittest.TestCase):
         self.assertTrue(f2 == "x2384")
         f2[0:0] = "b1"
         self.assertTrue(f2 == "x2385")
-        
+
         with self.assertRaises(IndexError):
-            f2[-1:0] = 'x1'
+            f2[-1:0] = "x1"
         with self.assertRaises(IndexError):
-            f2[0:-1] = 'x1'
+            f2[0:-1] = "x1"
         with self.assertRaises(IndexError):
-            f2[0:0:-1] = 'x1'
+            f2[0:0:-1] = "x1"
         with self.assertRaises(IndexError):
-            f2[0:] = 'x1'
+            f2[0:] = "x1"
         with self.assertRaises(IndexError):
-            f2[16:] = 'x1'
+            f2[16:] = "x1"
         with self.assertRaises(InvalidFieldDataException):
-            f2[7:0] = 'x1234'
+            f2[7:0] = "x1234"
 
     def testAdd_WithNoOverflow(self):
         f1 = Bytes(2, value="x0002")
         self.assertEqual((f1 + 16), "x12")
-        
+
     def testAdd_WithOverflow(self):
-        f2 = Bit(value='b1')
-        self.assertEqual(f2+1, 'b0')
-        
+        f2 = Bit(value="b1")
+        self.assertEqual(f2 + 1, "b0")
+
     def testAdd_Concatenation(self):
         f1 = Bytes(2, value="x0002")
         f2 = Bytes(2, value="x0010")
@@ -234,11 +233,11 @@ class TestFieldOperators(unittest.TestCase):
         f1 = Bytes(2, value="x0002")
         self.assertTrue((f1 >> 1) == "x0001")
         self.assertTrue((f1 >> 2) == "x0000")
-        
+
     def testReprWithNoValue(self):
         f1 = Byte()
         self.assertEqual(repr(f1), "<Byte Field, length=1 (8 bits), value=undefined>")
-        
+
     def testReprWithValue(self):
         f2 = Byte(value="x12")
         self.assertEqual(repr(f2), "x12")

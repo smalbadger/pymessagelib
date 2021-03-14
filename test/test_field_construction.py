@@ -26,11 +26,11 @@ class TestFieldConstruction(unittest.TestCase):
     def testEmptyFieldName(self):
         field = Bit()
         self.assertEqual(field.name, "")
-        
+
     def testInvalidValue(self):
         with self.assertRaises(InvalidFieldDataException):
-            Bit(value='x2')
-            
+            Bit(value="x2")
+
     def testInvalidValueFormat(self):
         with self.assertRaises(InvalidDataFormatException):
-            Bit(value='2')
+            Bit(value="2")
