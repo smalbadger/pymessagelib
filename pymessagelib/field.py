@@ -353,8 +353,6 @@ class Field(ABC):
 
     def __rshift__(self, amount):
         shifted_bin_val = format(int(self) >> amount, "b")
-        if len(shifted_bin_val) > len(self):
-            shifted_bin_val = shifted_bin_val[-len(self) :]
         return type(self)(length=self._unit_length, value=f"b{shifted_bin_val}")
 
     def __invert__(self):
