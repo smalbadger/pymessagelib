@@ -4,6 +4,7 @@ from _exceptions import InvalidFieldDataException, InvalidDataFormatException
 
 
 class TestFieldOperators(unittest.TestCase):
+
     def testInvert(self):
         field = Bits(7, value="b0011011")
         self.assertEqual(~field, "b1100100")
@@ -227,3 +228,11 @@ class TestFieldOperators(unittest.TestCase):
         f1 = Bytes(2, value="x0002")
         self.assertTrue((f1 >> 1) == "x0001")
         self.assertTrue((f1 >> 2) == "x0000")
+        
+    def testReprWithNoValue(self):
+        f1 = Byte()
+        self.assertEqual(repr(f1), "<Byte Field, length=1 (8 bits), value=undefined>")
+        
+    def testReprWithValue(self):
+        f2 = Byte(value="x12")
+        self.assertEqual(repr(f2), "x12")
