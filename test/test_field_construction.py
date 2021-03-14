@@ -2,7 +2,7 @@ import unittest
 from message_builder import MessageBuilder
 from msg_definitions import msg_fmts, register_defs
 from field import Bit, Bits
-from _exceptions import InvalidFormatException
+from _exceptions import InvalidFormatException, InvalidFieldDataException, InvalidDataFormatException
 
 
 class TestFieldConstruction(unittest.TestCase):
@@ -26,3 +26,11 @@ class TestFieldConstruction(unittest.TestCase):
     def testEmptyFieldName(self):
         field = Bit()
         self.assertEqual(field.name, "")
+        
+    def testInvalidValue(self):
+        with self.assertRaises(InvalidFieldDataException):
+            Bit(value='x2')
+            
+    def testInvalidValueFormat(self):
+        with self.assertRaises(InvalidDataFormatException):
+            Bit(value='2')

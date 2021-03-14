@@ -70,6 +70,8 @@ class Field(ABC):
         # Determine the format the value will be rendered as
         if fmt:
             self._format = fmt
+        elif isinstance(value, str) and value[0] not in Field.bases():
+            raise InvalidDataFormatException(f"value of '{value}' is not correctly formatted.")
         elif value is not None and not inspect.isfunction(value):
             self._format = Field.get_format(value)
         else:
@@ -82,8 +84,6 @@ class Field(ABC):
             if not self.value_is_valid(value):
                 raise InvalidFieldDataException(f"The value {value} is not valid for field {self}")
             self._value = self.render(value=value, fmt=Field.Format.Bin, pad_to_length=self._bit_length)
-            if not len(self._value) - 1 == self._bit_length:
-                raise InvalidDataFormatException(f"{self._value} is not the correct bit length of {self._bit_length}")
 
     def render(self, value=None, fmt=None, pad_to_length=0) -> str:
         """
