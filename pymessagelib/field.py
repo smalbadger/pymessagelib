@@ -230,8 +230,7 @@ class Field(ABC):
         """Converts the field to a string. If fmt is not supported, the default representation is returned."""
         if fmt in Field.bases():
             return self.render(fmt=Field.bases()[fmt])
-        else:
-            return repr(self)
+        return repr(self)
 
     ########################################
     #  --  Comparison Special Methods  --  #
@@ -256,7 +255,7 @@ class Field(ABC):
             other_prefix, other_numeric_value = other[0], other[1:]
             return self < int(other_numeric_value, Field.bases()[other_prefix].value)
 
-        elif not isinstance(other, int):
+        if not isinstance(other, int):
             return self < int(other)
 
         return int(self) < other
@@ -309,7 +308,7 @@ class Field(ABC):
             other_prefix, other_numeric_value = other[0], other[1:]
             return self & int(other_numeric_value, Field.get_format(other).value)
 
-        elif not isinstance(other, int):
+        if not isinstance(other, int):
             return self & int(other)
 
         val = format(int(self) & other, "b")
@@ -322,7 +321,7 @@ class Field(ABC):
             other_prefix, other_numeric_value = other[0], other[1:]
             return self | int(other_numeric_value, Field.get_format(other).value)
 
-        elif not isinstance(other, int):
+        if not isinstance(other, int):
             return self | int(other)
 
         val = format(int(self) | other, "b")
@@ -335,7 +334,7 @@ class Field(ABC):
             other_prefix, other_numeric_value = other[0], other[1:]
             return self ^ int(other_numeric_value, Field.get_format(other).value)
 
-        elif not isinstance(other, int):
+        if not isinstance(other, int):
             return self ^ int(other)
 
         val = format(int(self) ^ other, "b")
@@ -376,7 +375,7 @@ class Field(ABC):
             search_in = self.render(fmt=Field.get_format(search))
             return search_val in search_in
 
-        elif isinstance(search, Field):
+        if isinstance(search, Field):
             return self.__contains__(search.render(fmt=Field.Format.Bin))
 
     def __bool__(self):
