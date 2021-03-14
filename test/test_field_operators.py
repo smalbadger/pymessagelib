@@ -215,10 +215,10 @@ class TestFieldOperators(unittest.TestCase):
 
     def testAdd_WithOverflow(self):
         self.assertEqual(Bit(value="b1") + 1, "b0")
-        
+
     def testAdd_InvalidType(self):
         with self.assertRaises(ValueError):
-            Bit(value='b1') + [1,2]
+            Bit(value="b1") + [1, 2]
 
     def testAdd_Concatenation(self):
         f1 = Bytes(2, value="x0002")
