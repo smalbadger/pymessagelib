@@ -152,6 +152,8 @@ class TestFieldOperators(unittest.TestCase):
         self.assertTrue(f1[0:7] == "xA2")
         self.assertTrue(f1[8:15] == "xC4")
 
+        self.assertTrue(f1[0:0] == 'b1')
+
         with self.assertRaises(IndexError):
             f1[16:0]
         with self.assertRaises(IndexError):
