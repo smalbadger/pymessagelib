@@ -429,12 +429,12 @@ class Field(ABC):
                 bin_val = bin_val[::-1]
                 
             return Bits(len(bin_val), value=f'b{bin_val}')
-        else:
-            if subscript < 0:
-                raise IndexError("Negative indexing not supported in Field class")
-            bin_val = format(self, "b")[1:][::-1]
-            bit = bin_val[subscript]
-            return Bit(value=f'b{bit}')
+
+        if subscript < 0:
+            raise IndexError("Negative indexing not supported in Field class")
+        bin_val = format(self, "b")[1:][::-1]
+        bit = bin_val[subscript]
+        return Bit(value=f'b{bit}')
 
     def __setitem__(self, subscript, value):
         """
@@ -483,6 +483,7 @@ class Field(ABC):
                 
             final_val = f'{self_bin_val[:min_]}{val_bin_val}{self_bin_val[max_+1:]}'[::-1]
             self.value = "b" + final_val
+            
         else:
             if subscript < 0:
                 raise IndexError("Negative indexing not supported in Field class")
