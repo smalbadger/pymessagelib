@@ -381,8 +381,32 @@ class Field(ABC):
         val_minus_format = self._value[1:]
         return any((False if char == "0" else True for char in val_minus_format))
 
-    def __getitem__(self, index):
-        pass
+    def __getitem__(self, subscript):
+        if isinstance(subscript, slice):
+            if subscript.step is not None:
+                raise Exception(f"Field slicing must not include a step value. Invalid step {subscript.step}")
+            
+            max_ = max(subscript.start, subscript.stop)
+            if max_ > len(self)-1:
+                raise IndexError(f"Index value {max_} exceeds the length of field.")
+            min_ = min(subscript.start, subscript.stop)
+            if min_ < 0:
+                raise IndexError(f"Index value {min_} is less than zero.")
+            
+            if subscript.start == subscript.stop:
+                return self.__getitem__(subscript.start)
+            
+            bin_val = format(self, "b")[1:][::-1][min_:max_+1]
+            if subscript.start == max_:
+                bin_val = bin_val[::-1]
+                
+            return Bits(len(bin_val), value=f'b{bin_val}')
+        else:
+            if subscript < 0:
+                raise IndexError("Negative indexing not supported in Field class")
+            bin_val = format(self, "b")[1:][::-1]
+            bit = bin_val[subscript]
+            return Bit(value=f'b{bit}')
 
     def __setitem__(self, index, value):
         pass

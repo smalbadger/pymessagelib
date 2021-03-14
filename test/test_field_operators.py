@@ -113,27 +113,26 @@ class TestFieldOperators(unittest.TestCase):
         self.assertTrue(Byte(value="x23") in f1)
         self.assertTrue(Byte(value="x8") not in f1)
 
-    @unittest.expectedFailure
     def testGetItem(self):
         f1 = Bytes(2, value="x2345")
 
         # test getting single bits
-        self.assertTrue(f1[0] == "b1")
-        self.assertTrue(f1[1] == "b0")
-        self.assertTrue(f1[2] == "b1")
-        self.assertTrue(f1[3] == "b0")
-        self.assertTrue(f1[4] == "b0")
-        self.assertTrue(f1[5] == "b0")
-        self.assertTrue(f1[6] == "b1")
-        self.assertTrue(f1[7] == "b0")
-        self.assertTrue(f1[8] == "b1")
-        self.assertTrue(f1[9] == "b1")
-        self.assertTrue(f1[10] == "b0")
-        self.assertTrue(f1[11] == "b0")
-        self.assertTrue(f1[12] == "b1")
-        self.assertTrue(f1[13] == "b0")
-        self.assertTrue(f1[14] == "b0")
-        self.assertTrue(f1[15] == "b0")
+        self.assertEqual(f1[0] , "b1")
+        self.assertEqual(f1[1] , "b0")
+        self.assertEqual(f1[2] , "b1")
+        self.assertEqual(f1[3] , "b0")
+        self.assertEqual(f1[4] , "b0")
+        self.assertEqual(f1[5] , "b0")
+        self.assertEqual(f1[6] , "b1")
+        self.assertEqual(f1[7] , "b0")
+        self.assertEqual(f1[8] , "b1")
+        self.assertEqual(f1[9] , "b1")
+        self.assertEqual(f1[10], "b0")
+        self.assertEqual(f1[11], "b0")
+        self.assertEqual(f1[12], "b0")
+        self.assertEqual(f1[13], "b1")
+        self.assertEqual(f1[14], "b0")
+        self.assertEqual(f1[15], "b0")
 
         # test the bounds
         with self.assertRaises(IndexError):
@@ -141,7 +140,6 @@ class TestFieldOperators(unittest.TestCase):
         with self.assertRaises(IndexError):
             f1[16]
 
-    @unittest.expectedFailure
     def testGetSlice(self):
         f1 = Bytes(2, value="x2345")
 
