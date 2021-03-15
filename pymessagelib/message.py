@@ -7,20 +7,20 @@ Created on Jan 9, 2021
 :author: smalbadger
 """
 
-from abc import ABC
+import math
 import inspect
+from abc import ABC
 from typing import Dict
 from copy import deepcopy
 from terminaltables import AsciiTable
 
-from field import Field
-from _exceptions import (
+from pymessagelib.field import Field
+from pymessagelib._exceptions import (
     InvalidDataFormatException,
     MissingFieldDataException,
     InvalidFieldDataException,
     ConflictingContextsException,
 )
-import math
 
 
 class Message(ABC):

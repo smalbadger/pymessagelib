@@ -7,14 +7,14 @@ Created on Feb 18, 2021
 @author: smalb
 """
 
-from abc import ABC
-from enum import Enum
-import operator
+import copy
 import math
 import inspect
-import copy
+import operator
+from abc import ABC
+from enum import Enum
 
-from _exceptions import (
+from pymessagelib._exceptions import (
     InvalidDataFormatException,
     ContextDataMismatchException,
     InvalidFieldDataException,

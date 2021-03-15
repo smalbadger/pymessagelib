@@ -6,13 +6,13 @@ Created on Feb 18, 2021
 @author: smalb
 """
 
+import inspect
 from abc import ABCMeta
 from typing import Dict
-from message import Message
-from field import Field
-import inspect
 
-from _exceptions import (
+from pymessagelib.message import Message
+from pymessagelib.field import Field
+from pymessagelib._exceptions import (
     MissingFieldDataException,
     InvalidFieldException,
     InvalidFieldDataException,
@@ -20,7 +20,7 @@ from _exceptions import (
     CircularDependencyException,
     MultipleMatchingMessageDefinitionsException,
 )
-from dependency_graph import DependencyGraph
+from pymessagelib.dependency_graph import DependencyGraph
 
 
 class MessageBuilder:
