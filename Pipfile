@@ -8,6 +8,8 @@ black = "*"
 numpy = "*"
 coverage = "*"
 terminaltables = "*"
+twine = "*"
+bumpversion = "*"
 
 [dev-packages]
 
