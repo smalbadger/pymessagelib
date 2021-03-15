@@ -21,6 +21,12 @@ PyMessageLib dynamically creates functional classes based on user-defined messag
 
 ## Quick Start Guide
 
+### Installation
+
+To install, simply use this command:
+
+`pip install pymessagelib`
+
 
 ### Message Definitions
 
