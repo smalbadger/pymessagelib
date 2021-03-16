@@ -89,7 +89,7 @@ class Field(ABC):
         """
         Renders the field in the format specified.
         """
-        from message import Message
+        from pymessagelib.message import Message
 
         if not value:
             value = self.value
@@ -109,6 +109,12 @@ class Field(ABC):
         if check_length and len(numeric_value) > pad_to_length:
             raise InvalidDataFormatException(f"{value} is longer than specified length of {pad_to_length}.")
         int_val = int(numeric_value, Field.bases()[prefix].value)
+        if fmt not in Field.inverted_bases():
+            from pprint import pprint
+
+            pprint(Field.inverted_bases())
+            for f in Field.inverted_bases():
+                print(f, fmt, type(f), type(fmt), type(f) == type(fmt), f == fmt)
         fmt_str = f"0{pad_to_length}{Field.inverted_bases()[fmt]}"
         return Field.inverted_bases()[fmt] + format(int_val, fmt_str)
 
@@ -164,7 +170,7 @@ class Field(ABC):
 
         :raises: InvalidFieldDataException if the value is too big to fit in the field.
         """
-        from message import Message
+        from pymessagelib.message import Message
 
         is_msg = False
         if isinstance(value, Message):
@@ -188,7 +194,7 @@ class Field(ABC):
     @context.setter
     def context(self, context):
         """Sets the context of the field."""
-        from message import Message
+        from pymessagelib.message import Message
 
         assert context is None or Message in inspect.getmro(context)
 

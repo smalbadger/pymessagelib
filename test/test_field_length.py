@@ -1,5 +1,5 @@
 import unittest
-from field import Field, Bit, Bits
+from pymessagelib import Field, Bit, Bits
 
 
 class TestFieldLength(unittest.TestCase):

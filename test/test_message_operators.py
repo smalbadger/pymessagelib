@@ -1,7 +1,6 @@
 import unittest
-from message_builder import MessageBuilder
+from pymessagelib import MessageBuilder, InvalidDataFormatException
 from msg_definitions import msg_fmts, register_defs
-from _exceptions import InvalidDataFormatException
 
 
 class TestMessageOperators(unittest.TestCase):

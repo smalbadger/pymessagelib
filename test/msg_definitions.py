@@ -1,4 +1,4 @@
-from field import Field, Nibbles, Nibble, Bytes, Bits, Bit, Byte
+from pymessagelib import Field, Nibbles, Nibble, Bytes, Bits, Bit, Byte
 
 
 def calcLength(*args):

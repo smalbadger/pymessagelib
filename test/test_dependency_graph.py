@@ -1,5 +1,5 @@
 import unittest
-from dependency_graph import DependencyGraph
+from pymessagelib import DependencyGraph
 
 
 class TestDependencyGraph(unittest.TestCase):

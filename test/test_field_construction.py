@@ -1,8 +1,13 @@
 import unittest
-from message_builder import MessageBuilder
+from pymessagelib import (
+    MessageBuilder,
+    Bit,
+    Bits,
+    InvalidFormatException,
+    InvalidFieldDataException,
+    InvalidDataFormatException,
+)
 from msg_definitions import msg_fmts, register_defs
-from field import Bit, Bits
-from _exceptions import InvalidFormatException, InvalidFieldDataException, InvalidDataFormatException
 
 
 class TestFieldConstruction(unittest.TestCase):

@@ -1,7 +1,6 @@
 import unittest
-from message_builder import MessageBuilder
+from pymessagelib import MessageBuilder, InvalidFieldDataException, CircularDependencyException
 from msg_definitions import msg_fmts, register_defs, circular_dep
-from _exceptions import InvalidFieldDataException, CircularDependencyException
 
 
 class TestFieldTypes(unittest.TestCase):

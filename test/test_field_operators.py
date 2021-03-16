@@ -1,6 +1,5 @@
 import unittest
-from field import Field, Bit, Bits, Byte, Bytes, Nibbles
-from _exceptions import InvalidFieldDataException, InvalidDataFormatException
+from pymessagelib import Field, Bit, Bits, Byte, Bytes, Nibbles, InvalidFieldDataException, InvalidDataFormatException
 
 
 class TestFieldOperators(unittest.TestCase):

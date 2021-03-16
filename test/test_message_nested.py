@@ -1,8 +1,12 @@
 import unittest
 from field import Field
-from message_builder import MessageBuilder
+from pymessagelib import (
+    MessageBuilder,
+    InvalidFieldDataException,
+    CircularDependencyException,
+    ContextDataMismatchException,
+)
 from msg_definitions import msg_fmts, register_defs, caution_codes, circular_dep
-from _exceptions import InvalidFieldDataException, CircularDependencyException, ContextDataMismatchException
 
 
 class TestNestedMessages(unittest.TestCase):

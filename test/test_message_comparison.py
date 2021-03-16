@@ -1,5 +1,5 @@
 import unittest
-from message_builder import MessageBuilder
+from pymessagelib import MessageBuilder
 from msg_definitions import msg_fmts, register_defs, caution_codes
 
 

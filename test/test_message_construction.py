@@ -1,7 +1,7 @@
 import unittest
-from message_builder import MessageBuilder
 from msg_definitions import msg_fmts, register_defs, invalid_def
-from _exceptions import (
+from pymessagelib import (
+    MessageBuilder,
     InvalidDataFormatException,
     InvalidFieldException,
     MissingFieldDataException,

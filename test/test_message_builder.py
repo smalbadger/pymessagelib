@@ -1,7 +1,6 @@
 import unittest
-from message_builder import MessageBuilder
+from pymessagelib import MessageBuilder, InvalidFieldException, MultipleMatchingMessageDefinitionsException
 from msg_definitions import msg_fmts, register_defs, invalid_def
-from _exceptions import InvalidFieldException, MultipleMatchingMessageDefinitionsException
 
 
 class TestMessageBuilder(unittest.TestCase):

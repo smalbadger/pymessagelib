@@ -1,9 +1,13 @@
 import unittest
 import copy
-from field import Field
-from message_builder import MessageBuilder
+from pymessagelib import (
+    Field,
+    MessageBuilder,
+    InvalidFieldDataException,
+    CircularDependencyException,
+    ConflictingContextsException,
+)
 from msg_definitions import msg_fmts, register_defs, caution_codes, circular_dep
-from _exceptions import InvalidFieldDataException, CircularDependencyException, ConflictingContextsException
 
 
 def remove_whitespace(s):
