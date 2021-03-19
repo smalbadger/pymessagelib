@@ -120,24 +120,27 @@ class Field(ABC):
         """
         from pymessagelib.message import Message
 
-        if not any([isinstance(value, str), isinstance(value, Message)]):
+        try:
+            if not any([isinstance(value, str), isinstance(value, Message)]):
+                return False
+
+            if isinstance(value, str):
+                if value[0] not in Field.bases():
+                    return False
+
+                chars_left_over = value[1:]
+                for char in Field.get_valid_chars(Field.get_format(value)):
+                    chars_left_over = chars_left_over.replace(char, "")
+
+                if chars_left_over:
+                    return False
+
+            bin_value = self.render(value=value, fmt=Field.Format.Bin, pad_to_length=self._bit_length)[1:]
+            if len(bin_value) == self._bit_length:
+                return True
             return False
-
-        if isinstance(value, str):
-            if value[0] not in Field.bases():
-                return False
-
-            chars_left_over = value[1:]
-            for char in Field.get_valid_chars(Field.get_format(value)):
-                chars_left_over = chars_left_over.replace(char, "")
-
-            if chars_left_over:
-                return False
-
-        bin_value = self.render(value=value, fmt=Field.Format.Bin, pad_to_length=self._bit_length)[1:]
-        if len(bin_value) == self._bit_length:
-            return True
-        return False
+        except:
+            return False
 
     def length_as_format(self, fmt):
         """Return the character length if rendered in the specific format."""
