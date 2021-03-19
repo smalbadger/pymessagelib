@@ -30,3 +30,7 @@ class TestFieldValueIsValid(unittest.TestCase):
     def testInvalidValue(self):
         msg1 = self.builder.GET_ADDR(ptr="x00000054", addr="b10001101001")
         self.assertEqual(msg1.ptr.value_is_valid("xfjskjfjfj"), False)
+
+    def testBlankValue(self):
+        msg1 = self.builder.GET_ADDR(ptr="x00000054", addr="b10001101001")
+        self.assertEqual(msg1.ptr.value_is_valid(""), False)
