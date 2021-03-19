@@ -121,10 +121,10 @@ class Field(ABC):
         from pymessagelib.message import Message
 
         try:
-            
+
             if not any([isinstance(value, str), isinstance(value, Message)]):
                 return False
-            
+
             if isinstance(value, str) and value[0] not in Field.bases():
                 return False
 
