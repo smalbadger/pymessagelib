@@ -109,12 +109,6 @@ class Field(ABC):
         if check_length and len(numeric_value) > pad_to_length:
             raise InvalidDataFormatException(f"{value} is longer than specified length of {pad_to_length}.")
         int_val = int(numeric_value, Field.bases()[prefix].value)
-        if fmt not in Field.inverted_bases():
-            from pprint import pprint
-
-            pprint(Field.inverted_bases())
-            for f in Field.inverted_bases():
-                print(f, fmt, type(f), type(fmt), type(f) == type(fmt), f == fmt)
         fmt_str = f"0{pad_to_length}{Field.inverted_bases()[fmt]}"
         return Field.inverted_bases()[fmt] + format(int_val, fmt_str)
 
@@ -122,6 +116,9 @@ class Field(ABC):
         """
         Determine if a value is valid in this field.
         """
+        if isinstance(value, str) and value[0] not in Field.bases():
+            return False
+
         bin_value = self.render(value=value, fmt=Field.Format.Bin, pad_to_length=self._bit_length)[1:]
         if len(bin_value) == self._bit_length:
             return True
