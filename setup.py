@@ -9,7 +9,7 @@ README = (HERE / "README.md").read_text()
 
 setup(
     name="pymessagelib",
-    version="0.2.4",
+    version="0.2.5",
     description="Give structure to hexadecimal messages.",
     long_description=README,
     long_description_content_type="text/markdown",
