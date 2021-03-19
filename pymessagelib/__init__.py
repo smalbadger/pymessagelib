@@ -5,4 +5,4 @@ from pymessagelib._exceptions import *
 from pymessagelib.dependency_graph import DependencyGraph
 
 
-__version__ = "0.2.4"
+__version__ = "0.2.6"
