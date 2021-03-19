@@ -10,6 +10,7 @@ coverage = "*"
 terminaltables = "*"
 twine = "*"
 bumpversion = "*"
+wheel = "*"
 
 [dev-packages]
 

@@ -20,6 +20,7 @@ from pymessagelib._exceptions import (
     InvalidFieldDataException,
     InvalidFormatException,
 )
+from pickle import FALSE
 
 
 class Field(ABC):
@@ -115,14 +116,24 @@ class Field(ABC):
     def value_is_valid(self, value):
         """
         Determine if a value is valid in this field.
+        This function cannot raise exceptions. It will always return True or False
         """
-        if isinstance(value, str) and value[0] not in Field.bases():
-            return False
+        from pymessagelib.message import Message
 
-        bin_value = self.render(value=value, fmt=Field.Format.Bin, pad_to_length=self._bit_length)[1:]
-        if len(bin_value) == self._bit_length:
-            return True
-        return False
+        try:
+
+            if not any([isinstance(value, str), isinstance(value, Message)]):
+                return False
+
+            if isinstance(value, str) and value[0] not in Field.bases():
+                return False
+
+            bin_value = self.render(value=value, fmt=Field.Format.Bin, pad_to_length=self._bit_length)[1:]
+            if len(bin_value) == self._bit_length:
+                return True
+            return False
+        except:
+            return False
 
     def length_as_format(self, fmt):
         """Return the character length if rendered in the specific format."""
