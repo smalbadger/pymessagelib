@@ -134,8 +134,6 @@ class Field(ABC):
             return False
         except:
             return False
-        else:
-            return True
 
     def length_as_format(self, fmt):
         """Return the character length if rendered in the specific format."""
