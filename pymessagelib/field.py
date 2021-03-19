@@ -120,20 +120,24 @@ class Field(ABC):
         """
         from pymessagelib.message import Message
 
-        try:
+        if not any([isinstance(value, str), isinstance(value, Message)]):
+            return False
 
-            if not any([isinstance(value, str), isinstance(value, Message)]):
+        if isinstance(value, str):
+            if value[0] not in Field.bases():
                 return False
 
-            if isinstance(value, str) and value[0] not in Field.bases():
+            chars_left_over = value[1:]
+            for char in Field.get_valid_chars(Field.get_format(value)):
+                chars_left_over = chars_left_over.replace(char, "")
+
+            if chars_left_over:
                 return False
 
-            bin_value = self.render(value=value, fmt=Field.Format.Bin, pad_to_length=self._bit_length)[1:]
-            if len(bin_value) == self._bit_length:
-                return True
-            return False
-        except:
-            return False
+        bin_value = self.render(value=value, fmt=Field.Format.Bin, pad_to_length=self._bit_length)[1:]
+        if len(bin_value) == self._bit_length:
+            return True
+        return False
 
     def length_as_format(self, fmt):
         """Return the character length if rendered in the specific format."""
@@ -555,6 +559,17 @@ class Field(ABC):
     def get_format(value):
         """Returns the format of a value"""
         return Field.bases()[value[0]]
+
+    @staticmethod
+    def get_valid_chars(fmt):
+        if fmt is Field.Format.Hex:
+            return list("0123456789abcdefABCDEF")
+        if fmt is Field.Format.Dec:
+            return list("0123456789")
+        if fmt is Field.Format.Oct:
+            return list("01234567")
+        if fmt is Field.Format.Bin:
+            return list("01")
 
 
 class Bit(Field):
