@@ -122,6 +122,9 @@ class Field(ABC):
         """
         Determine if a value is valid in this field.
         """
+        if isinstance(value, str) and value[0] not in Field.bases():
+            return False
+        
         bin_value = self.render(value=value, fmt=Field.Format.Bin, pad_to_length=self._bit_length)[1:]
         if len(bin_value) == self._bit_length:
             return True
