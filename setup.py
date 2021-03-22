@@ -34,5 +34,5 @@ setup(
     include_package_data=True,
     author="smalbadger",
     author_email="smalbadger@gmail.com",
-    install_requires=["terminaltables"],
+    install_requires=[],
 )
