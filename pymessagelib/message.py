@@ -12,7 +12,6 @@ import inspect
 from abc import ABC
 from typing import Dict
 from copy import deepcopy
-from terminaltables import AsciiTable
 
 from pymessagelib.field import Field
 from pymessagelib._exceptions import (
@@ -221,7 +220,10 @@ class Message(ABC):
         Renders the Message object as an ASCII table. The first column specifies the name of each field
         and each subsequent column contains each field rendered in a specific format. The formats that
         fields are rendered as is dictated by the value of the `formats` parameter.
+
+        To use this function, the terminaltables package will need to be installled.
         """
+        from terminaltables import AsciiTable
 
         title = type(self).__name__
 
@@ -246,6 +248,8 @@ class Message(ABC):
         message are displayed side-by-side. Fields that differ are denoted by `!=` between
         the tables in the corresponding row and fields that are equivalent are denoted
         by `==` in the same manner.
+
+        To use this function, the terminaltables package will need to be installled.
         """
 
         if type(self) != type(other_message):
