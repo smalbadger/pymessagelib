@@ -27,6 +27,8 @@ class TestFieldTypes(unittest.TestCase):
         self.assertEqual(msg1.crc, "x0000")
         msg1.ptr = "x54000000"
         self.assertEqual(msg1.crc, "x5400")
+        msg1.ptr.value = "x51000000"
+        self.assertEqual(msg1.crc, "x5100")
 
         with self.assertRaises(CircularDependencyException):
             builder = MessageBuilder(circular_dep)
